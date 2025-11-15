@@ -8,6 +8,8 @@ class Caravan:
     name: str
     capacity: int
     location: str
+    latitude: float = 0.0
+    longitude: float = 0.0
     amenities: List[str] = field(default_factory=list)
     photos: List[str] = field(default_factory=list)
     status: str = "available"  # available, reserved, maintenance
