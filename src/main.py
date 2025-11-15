@@ -2,6 +2,7 @@ from datetime import date
 from src.models import User, Caravan
 from src.repositories import UserRepository, CaravanRepository, ReservationRepository, PaymentRepository
 from src.services import ReservationService, PaymentService
+from src.validators import ReservationValidator
 from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
 
 def main():
@@ -11,9 +12,12 @@ def main():
     reservation_repo = ReservationRepository()
     payment_repo = PaymentRepository()
 
+    # Initialize validator
+    validator = ReservationValidator(user_repo, caravan_repo, reservation_repo)
+
     # Initialize services
     payment_service = PaymentService(user_repo, payment_repo)
-    reservation_service = ReservationService(reservation_repo, user_repo, caravan_repo, payment_service)
+    reservation_service = ReservationService(reservation_repo, payment_service, validator)
 
     # Create some initial data
     host = user_repo.add(User(id=0, name="Host User", contact="host@example.com", is_host=True))

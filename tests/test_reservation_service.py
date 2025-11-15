@@ -10,21 +10,20 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from src.models import User, Caravan, Reservation
 from src.services import ReservationService, PaymentService
+from src.validators import ReservationValidator
 from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
 
 class TestReservationService(unittest.TestCase):
 
     def setUp(self):
-        self.user_repo = MagicMock()
-        self.caravan_repo = MagicMock()
         self.reservation_repo = MagicMock()
         self.payment_service = MagicMock(spec=PaymentService)
+        self.validator = MagicMock(spec=ReservationValidator)
 
         self.reservation_service = ReservationService(
             reservation_repo=self.reservation_repo,
-            user_repo=self.user_repo,
-            caravan_repo=self.caravan_repo,
             payment_service=self.payment_service,
+            validator=self.validator,
         )
 
         self.guest = User(id=1, name="Guest", contact="", is_host=False, balance=1000.0)
@@ -35,9 +34,7 @@ class TestReservationService(unittest.TestCase):
 
     def test_create_reservation_success(self):
         # Arrange
-        self.user_repo.get_by_id.return_value = self.guest
-        self.caravan_repo.get_by_id.return_value = self.caravan
-        self.reservation_repo.find_by_caravan_and_dates.return_value = []
+        self.validator.validate_user_exists.return_value = self.guest
         
         pending_res = Reservation(
             id=1, user_id=self.guest.id, caravan_id=self.caravan.id,
@@ -56,9 +53,9 @@ class TestReservationService(unittest.TestCase):
         )
 
         # Assert
-        self.user_repo.get_by_id.assert_called_once_with(self.guest.id)
-        self.caravan_repo.get_by_id.assert_called_once_with(self.caravan.id)
-        self.reservation_repo.find_by_caravan_and_dates.assert_called_once_with(
+        self.validator.validate_user_exists.assert_called_once_with(self.guest.id)
+        self.validator.validate_caravan_exists.assert_called_once_with(self.caravan.id)
+        self.validator.validate_no_duplicate_reservations.assert_called_once_with(
             self.caravan.id, self.start_date, self.end_date
         )
         self.reservation_repo.add.assert_called_once()
@@ -72,9 +69,7 @@ class TestReservationService(unittest.TestCase):
 
     def test_create_reservation_duplicate(self):
         # Arrange
-        self.user_repo.get_by_id.return_value = self.guest
-        self.caravan_repo.get_by_id.return_value = self.caravan
-        self.reservation_repo.find_by_caravan_and_dates.return_value = [MagicMock()] # Simulate existing reservation
+        self.validator.validate_no_duplicate_reservations.side_effect = DuplicateReservationError("test")
 
         # Act & Assert
         with self.assertRaises(DuplicateReservationError):
@@ -90,10 +85,7 @@ class TestReservationService(unittest.TestCase):
 
     def test_create_reservation_insufficient_funds(self):
         # Arrange
-        self.user_repo.get_by_id.return_value = self.guest
-        self.caravan_repo.get_by_id.return_value = self.caravan
-        self.reservation_repo.find_by_caravan_and_dates.return_value = []
-        
+        self.validator.validate_user_exists.return_value = self.guest
         pending_res = Reservation(
             id=1, user_id=self.guest.id, caravan_id=self.caravan.id,
             start_date=self.start_date, end_date=self.end_date,
@@ -115,7 +107,7 @@ class TestReservationService(unittest.TestCase):
 
     def test_create_reservation_user_not_found(self):
         # Arrange
-        self.user_repo.get_by_id.return_value = None
+        self.validator.validate_user_exists.side_effect = NotFoundError("User", 999)
 
         # Act & Assert
         with self.assertRaises(NotFoundError):
