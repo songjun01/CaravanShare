@@ -9,4 +9,4 @@ class Reservation:
     start_date: date
     end_date: date
     price: float
-    status: str = "pending"  # pending, confirmed, cancelled
+    status: str = "pending"  # pending, approved, rejected, paid, cancelled

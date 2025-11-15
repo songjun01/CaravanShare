@@ -6,6 +6,7 @@ from src.validators import ReservationValidator
 from src.strategies import DiscountStrategy, NoDiscount
 from src.observers import ReservationPublisher
 from src.factories import ReservationFactory
+from src.exceptions import NotFoundError
 from .payment_service import PaymentService
 
 class ReservationService:
@@ -58,10 +59,46 @@ class ReservationService:
         )
 
         # Update reservation status
-        created_reservation.status = "confirmed"
+        created_reservation.status = "paid"
         self._reservation_repo.update(created_reservation)
 
         # Notify observers
         self._publisher.notify("reservation_created", created_reservation)
 
         return created_reservation
+
+    def _get_reservation_or_fail(self, reservation_id: int) -> Reservation:
+        reservation = self._reservation_repo.get_by_id(reservation_id)
+        if not reservation:
+            raise NotFoundError("Reservation", reservation_id)
+        return reservation
+
+    def approve_reservation(self, reservation_id: int) -> Reservation:
+        reservation = self._get_reservation_or_fail(reservation_id)
+        reservation.status = "approved"
+        self._reservation_repo.update(reservation)
+        self._publisher.notify("reservation_approved", reservation)
+        return reservation
+
+    def reject_reservation(self, reservation_id: int) -> Reservation:
+        reservation = self._get_reservation_or_fail(reservation_id)
+        reservation.status = "rejected"
+        self._reservation_repo.update(reservation)
+        self._publisher.notify("reservation_rejected", reservation)
+        return reservation
+
+    def cancel_reservation(self, reservation_id: int) -> Reservation:
+        reservation = self._get_reservation_or_fail(reservation_id)
+        # In a real app, you might have logic here to check if cancellation is allowed,
+        # and to process a refund via the PaymentService.
+        reservation.status = "cancelled"
+        self._reservation_repo.update(reservation)
+        self._publisher.notify("reservation_cancelled", reservation)
+        return reservation
+
+    def complete_reservation(self, reservation_id: int) -> Reservation:
+        reservation = self._get_reservation_or_fail(reservation_id)
+        reservation.status = "completed"
+        self._reservation_repo.update(reservation)
+        self._publisher.notify("review_requested", reservation)
+        return reservation

@@ -3,6 +3,8 @@ from .user_repository import UserRepository
 from .caravan_repository import CaravanRepository
 from .reservation_repository import ReservationRepository
 from .payment_repository import PaymentRepository
+from .review_repository import ReviewRepository
+from .message_repository import MessageRepository
 
 __all__ = [
     "BaseRepository",
@@ -10,4 +12,6 @@ __all__ = [
     "CaravanRepository",
     "ReservationRepository",
     "PaymentRepository",
+    "ReviewRepository",
+    "MessageRepository",
 ]

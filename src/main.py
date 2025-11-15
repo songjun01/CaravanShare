@@ -1,34 +1,63 @@
 from datetime import date
 from src.models import User, Caravan
-from src.repositories import UserRepository, CaravanRepository, ReservationRepository, PaymentRepository
-from src.services import ReservationService, PaymentService
+from src.repositories import (
+    UserRepository, CaravanRepository, ReservationRepository, 
+    PaymentRepository, ReviewRepository, MessageRepository
+)
+from src.services import (
+    ReservationService, PaymentService, ReviewService, MessageService
+)
 from src.validators import ReservationValidator
 from src.strategies import PercentageDiscount
-from src.observers import ReservationPublisher, HostNotifier
+from src.observers import (
+    ReservationPublisher, HostNotifier, PaymentPublisher, 
+    GuestNotifier, ReviewPublisher, GuestReviewNotifier, HostReviewNotifier,
+    MessagePublisher, MessageNotifier
+)
 from src.factories import ReservationFactory
 from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
 
 def main():
-    # Initialize repositories (in a real app, this would be handled by a dependency injection container)
+    # Initialize repositories
     user_repo = UserRepository()
     caravan_repo = CaravanRepository()
     reservation_repo = ReservationRepository()
     payment_repo = PaymentRepository()
+    review_repo = ReviewRepository()
+    message_repo = MessageRepository()
 
-    # Initialize validator
+    # Initialize validators
     validator = ReservationValidator(user_repo, caravan_repo, reservation_repo)
 
     # Initialize observer pattern components
-    publisher = ReservationPublisher()
-    host_notifier = HostNotifier(user_repo, caravan_repo)
-    publisher.subscribe(host_notifier)
+    reservation_publisher = ReservationPublisher()
+    host_reservation_notifier = HostNotifier(user_repo, caravan_repo)
+    reservation_publisher.subscribe(host_reservation_notifier)
 
-    # Initialize factory
+    payment_publisher = PaymentPublisher()
+    guest_payment_notifier = GuestNotifier(user_repo)
+    payment_publisher.subscribe(guest_payment_notifier)
+
+    review_publisher = ReviewPublisher()
+    guest_review_notifier = GuestReviewNotifier(user_repo, reservation_repo)
+    host_review_notifier = HostReviewNotifier(user_repo, reservation_repo)
+    review_publisher.subscribe(guest_review_notifier)
+    review_publisher.subscribe(host_review_notifier)
+    reservation_publisher.subscribe(guest_review_notifier)
+
+    message_publisher = MessagePublisher()
+    message_notifier = MessageNotifier(user_repo)
+    message_publisher.subscribe(message_notifier)
+
+
+    # Initialize factories
     factory = ReservationFactory()
 
     # Initialize services
-    payment_service = PaymentService(user_repo, payment_repo)
-    reservation_service = ReservationService(reservation_repo, payment_service, validator, publisher, factory)
+    payment_service = PaymentService(user_repo, payment_repo, reservation_repo, payment_publisher)
+    reservation_service = ReservationService(reservation_repo, payment_service, validator, reservation_publisher, factory)
+    review_service = ReviewService(review_repo, review_publisher)
+    message_service = MessageService(message_repo, user_repo, message_publisher)
 
     # Create some initial data
     host = user_repo.add(User(id=0, name="Host User", contact="host@example.com", is_host=True))
@@ -42,14 +71,12 @@ def main():
     print(f"Guest's starting balance: ${guest.balance}")
     print("-" * 20)
 
-    # --- Use Case: Create a reservation ---
-    print("\n--- Use Case: Create a successful reservation (no discount) ---")
+    # --- Use Case: Full reservation, completion, and review flow ---
+    print("\n--- Use Case: Full reservation, completion, and review flow ---")
     try:
-        start_date = date(2025, 12, 1)
-        end_date = date(2025, 12, 5)
-        price = 400.0
-
-        print(f"Attempting to create reservation for Caravan ID {caravan.id} from {start_date} to {end_date} for ${price}.")
+        start_date = date(2025, 11, 1)
+        end_date = date(2025, 11, 5)
+        price = 300.0
         
         reservation = reservation_service.create_reservation(
             user_id=guest.id,
@@ -58,81 +85,41 @@ def main():
             end_date=end_date,
             price=price,
         )
-        print(f"Reservation successful! Reservation details: {reservation}")
-        print(f"Guest's new balance: ${guest.balance}")
+        print(f"Reservation created! Guest's new balance: ${guest.balance}")
+
+        reservation_service.complete_reservation(reservation.id)
+        print(f"Reservation completed.")
+
+        review_service.create_review(
+            reservation_id=reservation.id,
+            rating=5,
+            comment="Great trip, cozy caravan!",
+            author_id=guest.id,
+            subject_id=host.id
+        )
+        print("Review created successfully.")
 
     except (DuplicateReservationError, InsufficientFundsError, NotFoundError) as e:
-        print(f"Error creating reservation: {e}")
+        print(f"Error during reservation management demo: {e}")
 
     print("-" * 20)
 
-    # --- Use Case: Create a reservation with a discount ---
-    print("\n--- Use Case: Create a successful reservation (10% discount) ---")
+    # --- Use Case: User-to-user messaging ---
+    print("\n--- Use Case: User-to-user messaging ---")
     try:
-        start_date = date(2025, 12, 20)
-        end_date = date(2025, 12, 25)
-        price = 500.0
-        discount_strategy = PercentageDiscount(10)
-
-        print(f"Attempting to create reservation for Caravan ID {caravan.id} from {start_date} to {end_date} for ${price} with a 10% discount.")
-        
-        reservation = reservation_service.create_reservation(
-            user_id=guest.id,
-            caravan_id=caravan.id,
-            start_date=start_date,
-            end_date=end_date,
-            price=price,
-            discount_strategy=discount_strategy,
+        print(f"Guest is sending a message to the Host...")
+        message_service.send_message(
+            sender_id=guest.id,
+            recipient_id=host.id,
+            content="Hello! Looking forward to our trip."
         )
-        print(f"Reservation successful! Reservation details: {reservation}")
-        print(f"Guest's new balance: ${guest.balance}")
+        print("Message sent successfully.")
+        print(f"Messages: {message_repo.get_all()}")
 
-    except (DuplicateReservationError, InsufficientFundsError, NotFoundError) as e:
-        print(f"Error creating reservation: {e}")
+    except NotFoundError as e:
+        print(f"Error sending message: {e}")
 
     print("-" * 20)
-
-
-    # --- Use Case: Attempt to create a duplicate reservation ---
-    print("\n--- Use Case: Attempt to create a duplicate reservation ---")
-    try:
-        start_date = date(2025, 12, 22) # Overlapping date
-        end_date = date(2025, 12, 26)
-        price = 400.0
-
-        print(f"Attempting to create a duplicate reservation for Caravan ID {caravan.id} from {start_date} to {end_date}.")
-
-        reservation_service.create_reservation(
-            user_id=guest.id,
-            caravan_id=caravan.id,
-            start_date=start_date,
-            end_date=end_date,
-            price=price,
-        )
-    except (DuplicateReservationError, InsufficientFundsError, NotFoundError) as e:
-        print(f"Caught expected error: {e}")
-
-    print("-" * 20)
-
-    # --- Use Case: Insufficient funds ---
-    print("\n--- Use Case: Attempt reservation with insufficient funds ---")
-    try:
-        start_date = date(2026, 1, 1)
-        end_date = date(2026, 1, 5)
-        # The guest's balance is now 150 (1000 - 400 - 450). This will be insufficient.
-        price = guest.balance + 100.0 
-
-        print(f"Attempting to create a reservation with insufficient funds. Price: ${price}, Balance: ${guest.balance}")
-
-        reservation_service.create_reservation(
-            user_id=guest.id,
-            caravan_id=caravan.id,
-            start_date=start_date,
-            end_date=end_date,
-            price=price,
-        )
-    except (DuplicateReservationError, InsufficientFundsError, NotFoundError) as e:
-        print(f"Caught expected error: {e}")
 
 
 if __name__ == "__main__":

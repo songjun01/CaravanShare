@@ -85,7 +85,7 @@ class TestReservationService(unittest.TestCase):
         )
         self.reservation_repo.update.assert_called_once_with(added_res)
         self.publisher.notify.assert_called_once_with("reservation_created", added_res)
-        self.assertEqual(reservation.status, "confirmed")
+        self.assertEqual(reservation.status, "paid")
         self.assertEqual(reservation.price, self.price)
 
     def test_create_reservation_with_discount(self):
@@ -132,6 +132,7 @@ class TestReservationService(unittest.TestCase):
         )
         self.publisher.notify.assert_called_once_with("reservation_created", added_res)
         self.assertEqual(reservation.price, discounted_price)
+        self.assertEqual(reservation.status, "paid")
 
 
     def test_create_reservation_duplicate(self):
@@ -192,6 +193,70 @@ class TestReservationService(unittest.TestCase):
         self.factory.create_reservation.assert_not_called()
         self.payment_service.process_payment.assert_not_called()
         self.publisher.notify.assert_not_called()
+
+    def test_approve_reservation(self):
+        # Arrange
+        res = Reservation(id=1, user_id=1, caravan_id=1, start_date=self.start_date, end_date=self.end_date, price=100, status="pending")
+        self.reservation_repo.get_by_id.return_value = res
+
+        # Act
+        result = self.reservation_service.approve_reservation(1)
+
+        # Assert
+        self.reservation_repo.get_by_id.assert_called_once_with(1)
+        self.assertEqual(result.status, "approved")
+        self.reservation_repo.update.assert_called_once_with(result)
+        self.publisher.notify.assert_called_once_with("reservation_approved", result)
+
+    def test_reject_reservation(self):
+        # Arrange
+        res = Reservation(id=1, user_id=1, caravan_id=1, start_date=self.start_date, end_date=self.end_date, price=100, status="pending")
+        self.reservation_repo.get_by_id.return_value = res
+
+        # Act
+        result = self.reservation_service.reject_reservation(1)
+
+        # Assert
+        self.reservation_repo.get_by_id.assert_called_once_with(1)
+        self.assertEqual(result.status, "rejected")
+        self.reservation_repo.update.assert_called_once_with(result)
+        self.publisher.notify.assert_called_once_with("reservation_rejected", result)
+
+    def test_cancel_reservation(self):
+        # Arrange
+        res = Reservation(id=1, user_id=1, caravan_id=1, start_date=self.start_date, end_date=self.end_date, price=100, status="approved")
+        self.reservation_repo.get_by_id.return_value = res
+
+        # Act
+        result = self.reservation_service.cancel_reservation(1)
+
+        # Assert
+        self.reservation_repo.get_by_id.assert_called_once_with(1)
+        self.assertEqual(result.status, "cancelled")
+        self.reservation_repo.update.assert_called_once_with(result)
+        self.publisher.notify.assert_called_once_with("reservation_cancelled", result)
+
+    def test_get_reservation_or_fail_not_found(self):
+        # Arrange
+        self.reservation_repo.get_by_id.return_value = None
+        
+        # Act & Assert
+        with self.assertRaises(NotFoundError):
+            self.reservation_service._get_reservation_or_fail(999)
+
+    def test_complete_reservation(self):
+        # Arrange
+        res = Reservation(id=1, user_id=1, caravan_id=1, start_date=self.start_date, end_date=self.end_date, price=100, status="approved")
+        self.reservation_repo.get_by_id.return_value = res
+
+        # Act
+        result = self.reservation_service.complete_reservation(1)
+
+        # Assert
+        self.reservation_repo.get_by_id.assert_called_once_with(1)
+        self.assertEqual(result.status, "completed")
+        self.reservation_repo.update.assert_called_once_with(result)
+        self.publisher.notify.assert_called_once_with("review_requested", result)
 
 
 if __name__ == '__main__':
