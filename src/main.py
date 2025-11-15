@@ -1,7 +1,7 @@
 from datetime import date
 from src.models import User, Caravan
-from src.repositories import UserRepository, CaravanRepository, ReservationRepository
-from src.services import ReservationService
+from src.repositories import UserRepository, CaravanRepository, ReservationRepository, PaymentRepository
+from src.services import ReservationService, PaymentService
 from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
 
 def main():
@@ -9,9 +9,11 @@ def main():
     user_repo = UserRepository()
     caravan_repo = CaravanRepository()
     reservation_repo = ReservationRepository()
+    payment_repo = PaymentRepository()
 
     # Initialize services
-    reservation_service = ReservationService(reservation_repo, user_repo, caravan_repo)
+    payment_service = PaymentService(user_repo, payment_repo)
+    reservation_service = ReservationService(reservation_repo, user_repo, caravan_repo, payment_service)
 
     # Create some initial data
     host = user_repo.add(User(id=0, name="Host User", contact="host@example.com", is_host=True))
@@ -22,6 +24,7 @@ def main():
     print("--- Initial Data ---")
     print(f"Users: {user_repo.get_all()}")
     print(f"Caravans: {caravan_repo.get_all()}")
+    print(f"Guest's starting balance: ${guest.balance}")
     print("-" * 20)
 
     # --- Use Case: Create a reservation ---
@@ -42,6 +45,7 @@ def main():
         )
         print(f"Reservation successful! Reservation details: {reservation}")
         print(f"Guest's new balance: ${guest.balance}")
+        print(f"Payments: {payment_repo.get_all()}")
 
     except (DuplicateReservationError, InsufficientFundsError, NotFoundError) as e:
         print(f"Error creating reservation: {e}")
@@ -74,7 +78,8 @@ def main():
     try:
         start_date = date(2026, 1, 1)
         end_date = date(2026, 1, 5)
-        price = guest.balance + 100.0 # More than the guest's balance
+        # The guest's balance is now 500. This will be insufficient.
+        price = guest.balance + 100.0 
 
         print(f"Attempting to create a reservation with insufficient funds. Price: ${price}, Balance: ${guest.balance}")
 

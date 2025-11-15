@@ -1,7 +1,8 @@
 from datetime import date
-from src.models import Reservation, User, Caravan
+from src.models import Reservation
 from src.repositories import ReservationRepository, UserRepository, CaravanRepository
-from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
+from src.exceptions import DuplicateReservationError, NotFoundError
+from .payment_service import PaymentService
 
 class ReservationService:
     def __init__(
@@ -9,10 +10,12 @@ class ReservationService:
         reservation_repo: ReservationRepository,
         user_repo: UserRepository,
         caravan_repo: CaravanRepository,
+        payment_service: PaymentService,
     ):
         self._reservation_repo = reservation_repo
         self._user_repo = user_repo
         self._caravan_repo = caravan_repo
+        self._payment_service = payment_service
 
     def create_reservation(
         self, user_id: int, caravan_id: int, start_date: date, end_date: date, price: float
@@ -32,14 +35,7 @@ class ReservationService:
         if existing_reservations:
             raise DuplicateReservationError("Caravan is already reserved for the given dates.")
 
-        # Process payment
-        if user.balance < price:
-            raise InsufficientFundsError("User has insufficient funds.")
-        
-        user.balance -= price
-        self._user_repo.update(user)
-
-        # Create reservation
+        # Create reservation object first, to get an ID for the payment
         new_reservation = Reservation(
             id=0,  # The repository will assign an ID
             user_id=user_id,
@@ -49,5 +45,19 @@ class ReservationService:
             price=price,
             status="pending",
         )
+        
+        # Add reservation to repo to get a real ID
+        created_reservation = self._reservation_repo.add(new_reservation)
 
-        return self._reservation_repo.add(new_reservation)
+        # Process payment
+        self._payment_service.process_payment(
+            user=user,
+            reservation_id=created_reservation.id,
+            amount=price
+        )
+
+        # Update reservation status
+        created_reservation.status = "confirmed"
+        self._reservation_repo.update(created_reservation)
+
+        return created_reservation

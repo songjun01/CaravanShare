@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 
 from src.models import User, Caravan, Reservation
-from src.services import ReservationService
+from src.services import ReservationService, PaymentService
 from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
 
 class TestReservationService(unittest.TestCase):
@@ -18,11 +18,13 @@ class TestReservationService(unittest.TestCase):
         self.user_repo = MagicMock()
         self.caravan_repo = MagicMock()
         self.reservation_repo = MagicMock()
+        self.payment_service = MagicMock(spec=PaymentService)
 
         self.reservation_service = ReservationService(
             reservation_repo=self.reservation_repo,
             user_repo=self.user_repo,
             caravan_repo=self.caravan_repo,
+            payment_service=self.payment_service,
         )
 
         self.guest = User(id=1, name="Guest", contact="", is_host=False, balance=1000.0)
@@ -37,12 +39,12 @@ class TestReservationService(unittest.TestCase):
         self.caravan_repo.get_by_id.return_value = self.caravan
         self.reservation_repo.find_by_caravan_and_dates.return_value = []
         
-        new_res = Reservation(
+        pending_res = Reservation(
             id=1, user_id=self.guest.id, caravan_id=self.caravan.id,
             start_date=self.start_date, end_date=self.end_date,
             price=self.price, status="pending"
         )
-        self.reservation_repo.add.return_value = new_res
+        self.reservation_repo.add.return_value = pending_res
 
         # Act
         reservation = self.reservation_service.create_reservation(
@@ -59,10 +61,14 @@ class TestReservationService(unittest.TestCase):
         self.reservation_repo.find_by_caravan_and_dates.assert_called_once_with(
             self.caravan.id, self.start_date, self.end_date
         )
-        self.assertEqual(self.guest.balance, 500.0)
-        self.user_repo.update.assert_called_once_with(self.guest)
         self.reservation_repo.add.assert_called_once()
-        self.assertEqual(reservation, new_res)
+        self.payment_service.process_payment.assert_called_once_with(
+            user=self.guest,
+            reservation_id=pending_res.id,
+            amount=self.price
+        )
+        self.reservation_repo.update.assert_called_once_with(pending_res)
+        self.assertEqual(reservation.status, "confirmed")
 
     def test_create_reservation_duplicate(self):
         # Arrange
@@ -79,13 +85,23 @@ class TestReservationService(unittest.TestCase):
                 end_date=self.end_date,
                 price=self.price,
             )
+        self.payment_service.process_payment.assert_not_called()
+
 
     def test_create_reservation_insufficient_funds(self):
         # Arrange
-        self.guest.balance = 100.0
         self.user_repo.get_by_id.return_value = self.guest
         self.caravan_repo.get_by_id.return_value = self.caravan
         self.reservation_repo.find_by_caravan_and_dates.return_value = []
+        
+        pending_res = Reservation(
+            id=1, user_id=self.guest.id, caravan_id=self.caravan.id,
+            start_date=self.start_date, end_date=self.end_date,
+            price=self.price, status="pending"
+        )
+        self.reservation_repo.add.return_value = pending_res
+
+        self.payment_service.process_payment.side_effect = InsufficientFundsError("Test insufficient funds")
 
         # Act & Assert
         with self.assertRaises(InsufficientFundsError):
@@ -110,6 +126,8 @@ class TestReservationService(unittest.TestCase):
                 end_date=self.end_date,
                 price=self.price,
             )
+        self.payment_service.process_payment.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
