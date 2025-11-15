@@ -236,6 +236,23 @@ ReservationRepository 클래스 설계
 - **결과 및 수정사항**: 프롬프트를 토대로 Gemini CLI가 과제 3을 해결
 - **학습 내용**: Gemini CLI를 활용한 검색 알고리즘 구현
 
+---
+
+- **작업 내용**: 바이브코딩 실전 과제 4
+- **Gemini CLI 사용 프롬프트**:
+```
+과제 4: 변수명과 함수명의 명확성
+목표: 자기설명적 코드 작성
+
+네이밍 가이드:
+변수명: user_id (not uid)
+함수명: 동사로 시작 create_, validate_
+Boolean 함수: is_, has_, can_ 접두사
+상수: 대문자 MIN_RESERVATION_DAYS = 1
+```
+- **결과 및 수정사항**: 프롬프트를 토대로 Gemini CLI가 과제 4를 해결
+- **학습 내용**: Gemini CLI를 활용한 함수와 변수 리팩터링
+
 
 
 

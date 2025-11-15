@@ -37,8 +37,8 @@ class ReservationRepository:
     def find_by_caravan_and_dates(self, caravan_id: int, start_date: date, end_date: date) -> List[Reservation]:
         reservations = []
         caravan_reservations = self._data.get(caravan_id, {})
-        for r in caravan_reservations.values():
+        for reservation in caravan_reservations.values():
             # Check for overlapping dates
-            if (start_date <= r.end_date) and (end_date >= r.start_date):
-                reservations.append(r)
+            if (start_date <= reservation.end_date) and (end_date >= reservation.start_date):
+                reservations.append(reservation)
         return reservations
