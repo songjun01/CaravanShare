@@ -12,4 +12,6 @@ class Caravan:
     longitude: float = 0.0
     amenities: List[str] = field(default_factory=list)
     photos: List[str] = field(default_factory=list)
+    price_per_day: float = 0.0  # New attribute for daily rental price
+    average_rating: float = 0.0  # New attribute for average rating
     status: str = "available"  # available, reserved, maintenance

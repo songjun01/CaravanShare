@@ -42,3 +42,14 @@ class ReservationRepository:
             if (start_date <= reservation.end_date) and (end_date >= reservation.start_date):
                 reservations.append(reservation)
         return reservations
+
+    def find_by_user_id(self, user_id: int) -> List[Reservation]:
+        """
+        Find all reservations made by a specific user.
+        """
+        user_reservations = []
+        for caravan_reservations in self._data.values():
+            for reservation in caravan_reservations.values():
+                if reservation.user_id == user_id:
+                    user_reservations.append(reservation)
+        return user_reservations

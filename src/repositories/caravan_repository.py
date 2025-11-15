@@ -1,5 +1,5 @@
 from math import radians, cos, sin, asin, sqrt
-from typing import List
+from typing import List, Optional
 from src.models.caravan import Caravan
 from .base_repository import BaseRepository
 
@@ -30,3 +30,45 @@ class CaravanRepository(BaseRepository[Caravan]):
             if distance <= radius:
                 nearby_caravans.append(caravan)
         return nearby_caravans
+
+    def search(
+        self,
+        min_price: Optional[float] = None,
+        max_price: Optional[float] = None,
+        required_amenities: Optional[List[str]] = None,
+        min_rating: Optional[float] = None,
+        sort_by_rating: bool = False,  # New parameter for sorting
+    ) -> List[Caravan]:
+        """
+        Search caravans based on various filters.
+        """
+        filtered_caravans = self.get_all()
+
+        if min_price is not None:
+            filtered_caravans = [
+                caravan for caravan in filtered_caravans if caravan.price_per_day >= min_price
+            ]
+        if max_price is not None:
+            filtered_caravans = [
+                caravan for caravan in filtered_caravans if caravan.price_per_day <= max_price
+            ]
+        if required_amenities is not None:
+            filtered_caravans = [
+                caravan for caravan in filtered_caravans 
+                if all(amenity in caravan.amenities for amenity in required_amenities)
+            ]
+        if min_rating is not None:
+            filtered_caravans = [
+                caravan for caravan in filtered_caravans if caravan.average_rating >= min_rating
+            ]
+        
+        if sort_by_rating:
+            filtered_caravans.sort(key=lambda caravan: caravan.average_rating, reverse=True)
+            
+        return filtered_caravans
+
+    def get_popular_caravans(self, limit: int = 5) -> List[Caravan]:
+        """
+        Get a list of popular caravans, sorted by average rating.
+        """
+        return self.search(sort_by_rating=True)[:limit]
