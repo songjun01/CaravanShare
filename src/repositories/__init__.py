@@ -5,6 +5,7 @@ from .reservation_repository import ReservationRepository
 from .payment_repository import PaymentRepository
 from .review_repository import ReviewRepository
 from .message_repository import MessageRepository
+from .settlement_repository import SettlementRepository
 
 __all__ = [
     "BaseRepository",
@@ -14,4 +15,5 @@ __all__ = [
     "PaymentRepository",
     "ReviewRepository",
     "MessageRepository",
+    "SettlementRepository",
 ]

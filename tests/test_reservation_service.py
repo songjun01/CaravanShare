@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from src.models import User, Caravan, Reservation
 from src.services import ReservationService, PaymentService
 from src.validators import ReservationValidator
-from src.strategies import PercentageDiscount
+from src.strategies import PercentageDiscount, FeeStrategy
 from src.observers import ReservationPublisher
 from src.factories import ReservationFactory
 from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
@@ -24,6 +24,7 @@ class TestReservationService(unittest.TestCase):
         self.validator = MagicMock(spec=ReservationValidator)
         self.publisher = MagicMock(spec=ReservationPublisher)
         self.factory = MagicMock(spec=ReservationFactory)
+        self.fee_strategy = MagicMock(spec=FeeStrategy) # Mock for fee strategy
 
         self.reservation_service = ReservationService(
             reservation_repo=self.reservation_repo,
@@ -64,6 +65,7 @@ class TestReservationService(unittest.TestCase):
             start_date=self.start_date,
             end_date=self.end_date,
             price=self.price,
+            fee_strategy=self.fee_strategy # Pass mock fee strategy
         )
 
         # Assert
@@ -81,7 +83,8 @@ class TestReservationService(unittest.TestCase):
         self.payment_service.process_payment.assert_called_once_with(
             user=self.guest,
             reservation_id=added_res.id,
-            amount=self.price
+            amount=self.price,
+            fee_strategy=self.fee_strategy # Assert fee strategy is passed
         )
         self.reservation_repo.update.assert_called_once_with(added_res)
         self.publisher.notify.assert_called_once_with("reservation_created", added_res)
@@ -115,7 +118,8 @@ class TestReservationService(unittest.TestCase):
             start_date=self.start_date,
             end_date=self.end_date,
             price=self.price,
-            discount_strategy=discount_strategy
+            discount_strategy=discount_strategy,
+            fee_strategy=self.fee_strategy # Pass mock fee strategy
         )
 
         # Assert
@@ -128,7 +132,8 @@ class TestReservationService(unittest.TestCase):
         self.payment_service.process_payment.assert_called_once_with(
             user=self.guest,
             reservation_id=added_res.id,
-            amount=discounted_price
+            amount=discounted_price,
+            fee_strategy=self.fee_strategy # Assert fee strategy is passed
         )
         self.publisher.notify.assert_called_once_with("reservation_created", added_res)
         self.assertEqual(reservation.price, discounted_price)
@@ -147,6 +152,7 @@ class TestReservationService(unittest.TestCase):
                 start_date=self.start_date,
                 end_date=self.end_date,
                 price=self.price,
+                fee_strategy=self.fee_strategy # Pass mock fee strategy
             )
         self.factory.create_reservation.assert_not_called()
         self.payment_service.process_payment.assert_not_called()
@@ -173,6 +179,7 @@ class TestReservationService(unittest.TestCase):
                 start_date=self.start_date,
                 end_date=self.end_date,
                 price=self.price,
+                fee_strategy=self.fee_strategy # Pass mock fee strategy
             )
         self.publisher.notify.assert_not_called()
 
@@ -189,6 +196,7 @@ class TestReservationService(unittest.TestCase):
                 start_date=self.start_date,
                 end_date=self.end_date,
                 price=self.price,
+                fee_strategy=self.fee_strategy # Pass mock fee strategy
             )
         self.factory.create_reservation.assert_not_called()
         self.payment_service.process_payment.assert_not_called()

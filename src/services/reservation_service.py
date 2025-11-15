@@ -3,7 +3,7 @@ from typing import Optional
 from src.models import Reservation
 from src.repositories import ReservationRepository
 from src.validators import ReservationValidator
-from src.strategies import DiscountStrategy, NoDiscount
+from src.strategies import DiscountStrategy, NoDiscount, FeeStrategy
 from src.observers import ReservationPublisher
 from src.factories import ReservationFactory
 from src.exceptions import NotFoundError
@@ -26,7 +26,8 @@ class ReservationService:
 
     def create_reservation(
         self, user_id: int, caravan_id: int, start_date: date, end_date: date, price: float,
-        discount_strategy: Optional[DiscountStrategy] = None
+        discount_strategy: Optional[DiscountStrategy] = None,
+        fee_strategy: Optional[FeeStrategy] = None
     ) -> Reservation:
         # Validate inputs
         user = self._validator.validate_user_exists(user_id)
@@ -55,7 +56,8 @@ class ReservationService:
         self._payment_service.process_payment(
             user=user,
             reservation_id=created_reservation.id,
-            amount=final_price
+            amount=final_price,
+            fee_strategy=fee_strategy
         )
 
         # Update reservation status
