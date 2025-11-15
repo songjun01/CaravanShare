@@ -3,6 +3,9 @@ from src.models import User, Caravan
 from src.repositories import UserRepository, CaravanRepository, ReservationRepository, PaymentRepository
 from src.services import ReservationService, PaymentService
 from src.validators import ReservationValidator
+from src.strategies import PercentageDiscount
+from src.observers import ReservationPublisher, HostNotifier
+from src.factories import ReservationFactory
 from src.exceptions import DuplicateReservationError, InsufficientFundsError, NotFoundError
 
 def main():
@@ -15,9 +18,17 @@ def main():
     # Initialize validator
     validator = ReservationValidator(user_repo, caravan_repo, reservation_repo)
 
+    # Initialize observer pattern components
+    publisher = ReservationPublisher()
+    host_notifier = HostNotifier(user_repo, caravan_repo)
+    publisher.subscribe(host_notifier)
+
+    # Initialize factory
+    factory = ReservationFactory()
+
     # Initialize services
     payment_service = PaymentService(user_repo, payment_repo)
-    reservation_service = ReservationService(reservation_repo, payment_service, validator)
+    reservation_service = ReservationService(reservation_repo, payment_service, validator, publisher, factory)
 
     # Create some initial data
     host = user_repo.add(User(id=0, name="Host User", contact="host@example.com", is_host=True))
@@ -32,11 +43,11 @@ def main():
     print("-" * 20)
 
     # --- Use Case: Create a reservation ---
-    print("\n--- Use Case: Create a successful reservation ---")
+    print("\n--- Use Case: Create a successful reservation (no discount) ---")
     try:
-        start_date = date(2025, 12, 20)
-        end_date = date(2025, 12, 25)
-        price = 500.0
+        start_date = date(2025, 12, 1)
+        end_date = date(2025, 12, 5)
+        price = 400.0
 
         print(f"Attempting to create reservation for Caravan ID {caravan.id} from {start_date} to {end_date} for ${price}.")
         
@@ -49,12 +60,38 @@ def main():
         )
         print(f"Reservation successful! Reservation details: {reservation}")
         print(f"Guest's new balance: ${guest.balance}")
-        print(f"Payments: {payment_repo.get_all()}")
 
     except (DuplicateReservationError, InsufficientFundsError, NotFoundError) as e:
         print(f"Error creating reservation: {e}")
 
     print("-" * 20)
+
+    # --- Use Case: Create a reservation with a discount ---
+    print("\n--- Use Case: Create a successful reservation (10% discount) ---")
+    try:
+        start_date = date(2025, 12, 20)
+        end_date = date(2025, 12, 25)
+        price = 500.0
+        discount_strategy = PercentageDiscount(10)
+
+        print(f"Attempting to create reservation for Caravan ID {caravan.id} from {start_date} to {end_date} for ${price} with a 10% discount.")
+        
+        reservation = reservation_service.create_reservation(
+            user_id=guest.id,
+            caravan_id=caravan.id,
+            start_date=start_date,
+            end_date=end_date,
+            price=price,
+            discount_strategy=discount_strategy,
+        )
+        print(f"Reservation successful! Reservation details: {reservation}")
+        print(f"Guest's new balance: ${guest.balance}")
+
+    except (DuplicateReservationError, InsufficientFundsError, NotFoundError) as e:
+        print(f"Error creating reservation: {e}")
+
+    print("-" * 20)
+
 
     # --- Use Case: Attempt to create a duplicate reservation ---
     print("\n--- Use Case: Attempt to create a duplicate reservation ---")
@@ -82,7 +119,7 @@ def main():
     try:
         start_date = date(2026, 1, 1)
         end_date = date(2026, 1, 5)
-        # The guest's balance is now 500. This will be insufficient.
+        # The guest's balance is now 150 (1000 - 400 - 450). This will be insufficient.
         price = guest.balance + 100.0 
 
         print(f"Attempting to create a reservation with insufficient funds. Price: ${price}, Balance: ${guest.balance}")
