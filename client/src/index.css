@@ -1,0 +1,9 @@
+/* client/src/index.css */
+
+/* 
+  Tailwind CSS의 기본 지시어(directives)를 가져옵니다.
+  Vite 빌드 과정에서, 이 파일은 실제 Tailwind 유틸리티 클래스로 채워진 CSS 파일로 변환됩니다.
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
