@@ -9,6 +9,7 @@
 ## 개발 과정
 
 ### Day 1 (2025.11.10)
+
 - **작업 내용**: 작업을 위해 프로젝트의 개요와 핵심 요구사항을 gemini CLI에 입력
 - **Gemini CLI 사용 프롬프트**:
 ```
@@ -365,6 +366,330 @@ Phase 2: 고급 기능
 ```
 - **결과 및 수정사항**: 프롬프트를 토대로 Gemini CLI가 고급 기능 작성. 평가 및 추천 시스템
 - **학습 내용**: Gemini CLI를 활용한 고급 기능 작성
+
+---
+
+### Day 3 (2025.11.17)
+
+- **작업 내용**: 프로젝트의 프론트엔드와 백엔드 구현
+- **Gemini CLI 사용 프롬프트**:
+```
+"Gemini, 'CaravanShare' 프로젝트의 순수 Python 기반 도메인 설계를 완료했습니다. 이제 이 '설계 사상(깨끗한 아키텍처)'을 사용자가 지정한 새로운 기술 스택으로 이전하여 실제 풀스택 웹 애플리케이션을 구축해야 합니다.
+아래 명시된 <요구사항>을 모두 엄격하게 준수하여 프로젝트의 전체 구조, 백엔드, 프론트엔드, 그리고 문서화에 대한 구체적인 계획과 코드 스캐폴딩을 제공해 주세요.
+
+<요구사항>
+
+1. UI/UX 디자인 (필수 반영)
+컨셉: 깨끗하고 미니멀하며 고급스러운 느낌.
+색상: 화이트와 파스텔 톤을 메인으로 사용.
+레이아웃: 반응형 웹 디자인 (데스크톱, 태블릿, 모바일 완벽 지원).
+UI: 직관적이고 사용하기 쉬운 인터페이스.
+
+2. 기술 스택 (필수 사용)
+프론트엔드: React (최신 버전)
+스타일링: Tailwind CSS
+백엔드: Node.js (Express 프레임워크)
+데이터베이스: MongoDB (Mongoose ODM 사용)
+
+3. 추가 요청 사항 (필수 준수)
+주석: 모든 코드 파일(백엔드, 프론트엔드)에 이해하기 쉽도록 상세한 주석을 달아주세요.
+폴더 구조: 프로젝트 전체(백엔드/프론트엔드)의 폴더 구조를 트리(tree) 형태로 명확하게 설명해 주세요.
+문서화: 백엔드와 프론트엔드 각각의 **package.json**에 들어갈 라이브러리 목록과, 프로젝트 루트에 위치할 README.md 파일(설치/실행 방법 포함)을 작성해 주세요.
+
+<요청 작업 목록>
+
+1. 프로젝트 전체 구조 (Folder Structure)
+백엔드(Express)와 프론트엔드(React)를 한 레포지토리에서 관리하는 모노레포(monorepo) 스타일의 전체 폴더 구조를 트리(tree) 형태로 제안해 주세요. (예: server/, client/ 폴더 분리)
+
+2. 백엔드 구현 (Node.js, Express, MongoDB)
+Python의 User, Caravan 모델을 MongoDB (Mongoose) 스키마로 변환하는 예시 코드를 (server/src/models/) 작성해 주세요. (상세한 주석 포함)
+Python으로 설계했던 '리포지토리 패턴'과 '서비스/검증 로직 분리' 사상을 Node.js/Express로 어떻게 구현하는지 보여주세요.
+CaravanRepository (server/src/repositories/) 예시 코드 (Mongoose 로직 포함)
+ReservationService 및 ReservationValidator (server/src/services/) 예시 코드 (의존성 주입(DI) 개념이 어떻게 적용되는지 주석으로 설명)
+Express 라우터 (server/src/routes/) 설계를 보여주세요. 핵심 기능인 POST /api/v1/reservations (예약 생성) 엔드포인트의 컨트롤러 로직 전체 예시 코드를 상세한 주석과 함께 작성해 주세요.
+요구사항 1.1(인증/인가)을 위해 **JWT(JSON Web Token)**를 사용하는 Express 인증 미들웨어 예시 코드를 작성해 주세요.
+
+3. 프론트엔드 구현 (React, Tailwind CSS)
+Tailwind CSS를 사용하여 <UI/UX 디자인> 요구사항(미니멀, 파스텔 톤)을 반영한 기본 레이아웃 컴포넌트 (client/src/components/Layout.jsx)와 헤더 컴포넌트 (Header.jsx)의 전체 코드를 작성해 주세요. (상세한 주석 포함)
+CaravanListPage.jsx (client/src/pages/)에서 백엔드 API (GET /api/v1/caravans)를 axios로 호출하고,
+불러온 데이터를 Tailwind CSS로 스타일링한 '깨끗하고 고급스러운' 반응형 카드(Card) 컴포넌트에 매핑하여 표시하는 전체 코드 예시를 보여주세요. (상세한 주석 포함)
+
+4. 문서화 (package.json, README.md)
+server/package.json과 client/package.json에 필요한 핵심 라이브러리 목록(dependencies)을 명시해 주세요.
+프로젝트 루트에 위치할 README.md 파일의 템플릿을 작성해 주세요. (프로젝트 개요, <기술 스택> 명시, server 및 client의 설치 및 실행 방법 포함)"
+```
+- **결과 및 수정사항**: 성공적으로 구현 성공
+- **학습 내용**: 프론트엔드와 백엔드의 구현과 작동 방식
+
+---
+
+### Day 4 (2025.11.18)
+
+- **작업 내용**: 구글, 네이버, 카카오 로그인 구현
+- **Gemini CLI 사용 프롬프트**:
+"Gemini, 'CaravanShare' 프로젝트의 풀스택 스캐폴딩(React, Express, MongoDB)에 이어서, 소셜 로그인(OAuth) 기능을 구현해야 합니다.
+
+<요구사항>
+
+로그인 제공자: Google, Naver, Kakao (총 3개)
+
+핵심 라이브러리: **Passport.js**를 사용하여 Express 백엔드에 통합합니다.
+
+인증 방식: 로그인/회원가입 성공 시, **JWT(JSON Web Token)**를 발급하여 클라이언트(React)에 전달합니다.
+
+UI/UX: 이전의 '깨끗하고 미니멀한' 디자인 컨셉을 유지하며, Tailwind CSS로 스타일링된 로그인 버튼을 제공합니다.
+
+주석: 모든 코드에 상세한 주석을 달아주세요.
+
+<요청 작업 목록>
+
+1. 백엔드 (Node.js, Express, Passport.js, MongoDB)
+
+package.json 업데이트: passport, passport-google-oauth20, passport-naver, passport-kakao, jsonwebtoken, express-session 등 필요한 라이브러리를 server/package.json에 추가하는 목록을 보여주세요.
+
+MongoDB User 모델 업데이트: Mongoose User 스키마(server/src/models/User.js)를 수정하여, 소셜 로그인 제공자 ID(예: googleId, naverId, kakaoId)와 프로필 정보(email, displayName, provider)를 저장할 수 있도록 업데이트된 코드를 보여주세요. (로컬 이메일/비밀번호 필드는 제거하거나 optional로 둡니다.)
+
+Passport.js 설정 (server/src/config/passport.js):
+
+Google, Naver, Kakao 각각의 **Strategy(전략)**를 설정하는 전체 코드를 작성해 주세요.
+
+각 전략의 Callback 함수 내에서, 제공받은 프로필 정보로 MongoDB의 User 컬렉션을 조회(findOne)하고,
+
+사용자가 없으면 (최초 로그인): 새 사용자를 생성(create)하고 (이것이 **'회원가입'**임),
+
+사용자가 있으면 (기존 로그인): 해당 사용자를 반환하는 'Find-or-Create' 로직을 상세한 주석과 함께 구현해 주세요.
+
+Express 인증 라우터 (server/src/routes/auth.js):
+
+GET /api/v1/auth/google, GET /api/v1/auth/naver, GET /api/v1/auth/kakao (로그인 시작) 라우트를 작성해 주세요.
+
+각 제공자의 Callback 라우트 (예: GET /api/v1/auth/google/callback)를 작성해 주세요.
+
+이 Callback 라우트에서, Passport 인증이 성공하면(req.user) JWT를 생성하고, 이 토큰을 쿼리 파라미터에 담아 프론트엔드 특정 페이지(예: /auth-success)로 리다이렉트시키는 로직을 구현해 주세요.
+
+server.js (또는 app.js) 업데이트: passport 미들웨어를 초기화하고 auth.js 라우터를 Express 앱에 연결하는 코드를 추가해 주세요.
+
+2. 프론트엔드 (React, Tailwind CSS)
+
+로그인 페이지 (client/src/pages/LoginPage.jsx):
+
+Tailwind CSS를 사용하여 '깨끗하고 미니멀한' 디자인의 로그인 페이지 컴포넌트를 작성해 주세요.
+
+'Google로 로그인', 'Naver로 로그인', 'Kakao로 로그인' 버튼을 포함해 주세요.
+
+중요: 이 버튼들은 'button'이 아닌, 백엔드의 인증 라우트(예: http://localhost:5000/api/v1/auth/google)로 연결되는 'a' (anchor) 태그로 구현해야 합니다. 각 버튼에 맞는 아이콘(SVG)과 색상을 적용하여 디자인 요구사항을 충족시켜 주세요.
+
+인증 콜백 페이지 (client/src/pages/AuthSuccessPage.jsx):
+
+백엔드에서 리다이렉트될 이 페이지의 코드를 작성해 주세요.
+
+페이지가 로드될 때, URL의 쿼리 파라미터에서 'token'(JWT)을 추출합니다.
+
+추출한 토큰을 localStorage에 저장하고, 사용자를 메인 페이지('/')로 리다이렉트시키는 로직을 useEffect 훅을 사용하여 구현해 주세요.
+
+3. 환경설정 (.env)
+
+백엔드의 .env.example 파일에 필요한 환경 변수 목록을 나열해 주세요.
+
+(예: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NAVER_CLIENT_ID, NAVER_CLIENT_SECRET, KAKAO_CLIENT_ID, JWT_SECRET, CLIENT_URL 등)
+
+각 변수 값을 어디서(예: Google Cloud Console) 발급받아야 하는지 간단한 안내를 주석으로 추가해 주세요."
+- **결과 및 수정사항**: 구현 성공
+- **학습 내용**: 소셜 간편 로그인 구현
+
+---
+
+- **작업 내용**: 구글, 네이버, 카카오 로그인 이후 우측 상단 버튼 제거 및 프로필 버튼 생성
+- **Gemini CLI 사용 프롬프트**:
+"Gemini, 'CaravanShare' 프로젝트의 소셜 로그인 기능이 완성되었습니다. 이제 로그인된 사용자의 UI 상태를 전역적으로 관리하고 로그아웃 기능을 구현해야 합니다.
+
+<요구사항>
+전역 상태 관리: **React Context API (AuthContext)**를 사용하여 로그인 상태(JWT 토큰, 사용자 정보)를 앱 전체에서 공유합니다.
+
+헤더 UI 변경:
+로그아웃 상태 시: Header에 '로그인', '회원가입' 버튼을 표시합니다.
+로그인 상태 시: '로그인', '회원가입' 버튼을 숨기고, 사용자의 프로필 사진(또는 아이콘)을 우측 상단에 표시합니다.
+
+프로필 드롭다운:
+로그인 상태에서 프로필 사진에 마우스를 올리면(hover), 드롭다운 메뉴가 나타나야 합니다.
+이 드롭다운 메뉴에는 우선 '로그아웃' 버튼만 포함합니다.
+Tailwind CSS의 group-hover 유틸리티를 사용하여 이 드롭다운을 구현합니다.
+
+로그아웃 기능:
+'로그아웃' 버튼을 클릭하면, AuthContext의 logout 함수가 호출되어야 합니다.
+logout 함수는 localStorage에서 JWT 토큰을 제거하고, Context의 상태를 '로그아웃'으로 변경해야 합니다.
+
+연동: 이전 단계에서 만든 AuthSuccessPage.jsx는 이제 localStorage에 직접 토큰을 저장하는 대신, AuthContext의 login 함수를 호출하도록 수정합니다.
+
+<요청 작업 목록>
+1. AuthContext 구현 (client/src/context/AuthContext.jsx)
+AuthContext를 생성하고, AuthProvider 컴포넌트를 구현하는 전체 코드를 작성해 주세요.
+AuthProvider는 내부에 user와 token 상태를 가집니다.
+login(token): JWT 토큰을 받아 localStorage에 저장하고, 사용자 정보를 state에 설정합니다. (필요시 토큰을 디코딩하여 사용자 정보를 얻습니다.)
+logout(): localStorage에서 토큰을 제거하고, state를 null로 초기화합니다.
+컴포넌트가 마운트될 때 localStorage의 토큰을 확인하여 로그인 상태를 복원하는 로직을 useEffect에 포함해 주세요.
+useAuth() 커스텀 훅도 함께 export 해주세요.
+
+2. App.jsx (또는 main.jsx) 업데이트
+AuthProvider를 임포트하여 React 앱의 최상위(e.g., Router 래퍼)를 감싸는 방법을 보여주세요.
+
+3. AuthSuccessPage.jsx 리팩토링
+useAuth 훅을 사용하여 login 함수를 가져옵니다.
+URL에서 토큰을 추출한 뒤, localStorage.setItem 대신 login(token)을 호출하도록 수정된 코드를 보여주세요.
+
+4. Header.jsx 리팩토링 (client/src/components/Header.jsx)
+useAuth 훅을 사용해 user 객체를 가져옵니다.
+삼항 연산자 또는 조건부 렌더링을 사용하여,
+user가 있으면 (로그인 상태) → ProfileDropdown 컴포넌트를 렌더링합니다.
+user가 없으면 (로그아웃 상태) → 기존의 '로그인' / '회원가입' 버튼을 렌더링합니다.
+이 로직이 포함된 Header.jsx의 전체 코드를 상세한 주석과 함께 작성해 주세요.
+
+5. 신규 ProfileDropdown.jsx 컴포넌트 (client/src/components/ProfileDropdown.jsx)
+useAuth 훅을 사용해 user 정보와 logout 함수를 가져옵니다.
+Tailwind CSS를 사용하여 다음을 구현합니다:
+relative 컨테이너 (group)
+사용자의 프로필 사진을 표시하는 <img> 태그 (없으면 기본 아이콘).
+마우스 호버 시(group-hover:block) 나타나는 absolute 드롭다운 메뉴 (hidden이 기본값).
+드롭다운 메뉴 내의 '로그아웃' 버튼.
+'로그아웃' 버튼의 onClick 이벤트 핸들러가 logout() 함수를 호출하도록 합니다.
+
+이 신규 컴포넌트의 전체 코드를 상세한 주석과 함께 작성해 주세요."
+- **결과 및 수정사항**: 구현 성공
+- **학습 내용**: 로그인 정보 전역 관리
+
+---
+
+- **작업 내용**: 회원가입 기능 구현
+- **Gemini CLI 사용 프롬프트**:
+"Gemini, 'CaravanShare' 프로젝트에 전통적인 이메일/비밀번호 방식의 회원가입 및 로컬 로그인 기능을 추가해야 합니다. 기존의 소셜 로그인(OAuth) 기능과 이 기능이 공존해야 합니다.
+
+<요구사항>
+
+기술 스택:
+
+비밀번호 암호화: bcryptjs 라이브러리를 사용하여 사용자의 비밀번호를 해시(hash)하여 MongoDB에 저장해야 합니다. (필수)
+
+로컬 인증: **passport-local**을 사용하여 이메일/비밀번호 기반의 '로그인' 전략을 Passport.js에 추가합니다.
+
+기능 흐름:
+
+회원가입: 사용자가 이름, 이메일, 비밀번호를 입력 → 백엔드는 이메일 중복 검사 → 비밀번호 해시 → DB에 저장 → 성공 응답 (또는 JWT 발급).
+
+로그인: 사용자가 이메일, 비밀번호 입력 → 백엔드는 이메일로 사용자 조회 → bcrypt로 비밀번호 비교 → 성공 시 JWT 발급.
+
+UI/UX:
+
+'로그인 페이지'에 소셜 로그인 버튼과 별도로 이메일/비밀번호 입력 폼을 추가합니다.
+
+로그인 폼 하단에 '회원가입' 페이지로 이동하는 링크를 추가합니다.
+
+'회원가입 페이지'를 새로 만듭니다. (미니멀한 Tailwind CSS 폼)
+
+주석: 모든 코드에 상세한 주석을 달아주세요.
+
+<요청 작업 목록>
+
+1. 백엔드 (Node.js, Express, MongoDB)
+
+package.json 업데이트: bcryptjs, passport-local 라이브러리를 server/package.json에 추가하는 목록을 보여주세요.
+
+User 모델 업데이트 (server/src/models/User.js):
+
+Mongoose User 스키마에 email (unique, required)과 password (required) 필드를 추가합니다.
+
+name 필드도 추가합니다.
+
+**pre('save') 훅(hook)**을 사용하여, User 모델이 저장되기 직전에 bcryptjs로 password를 자동으로 해시하는 로직을 구현해 주세요. (매우 중요)
+
+user 객체에 comparePassword(candidatePassword) 메서드를 추가하여, 입력된 비밀번호와 해시된 비밀번호를 bcrypt로 비교하는 로직을 구현해 주세요.
+
+Passport.js 전략 추가 (server/src/config/passport.js):
+
+passport-local을 사용하는 **LocalStrategy**를 설정하는 코드를 추가해 주세요.
+
+이 전략은 email로 사용자를 찾고, user.comparePassword() 메서드를 호출하여 비밀번호를 검증해야 합니다.
+
+인증 라우터 업데이트 (server/src/routes/auth.js):
+
+POST /api/v1/auth/register (회원가입):
+
+이메일 중복을 먼저 확인합니다.
+
+중복이 없으면 new User({ name, email, password }) 객체를 생성하고 user.save()를 호출합니다. (이때 pre-save 훅이 비밀번호를 해시합니다.)
+
+회원가입 성공 시, 즉시 로그인 처리를 위해 JWT를 발급하여 응답하는 전체 컨트롤러 코드를 작성해 주세요.
+
+POST /api/v1/auth/login (로컬 로그인):
+
+passport.authenticate('local', ...) 미들웨어를 사용하여 사용자를 검증합니다.
+
+인증 성공 시, 소셜 로그인 콜백과 동일하게 JWT를 발급하여 응답하는 전체 컨트롤러 코드를 작성해 주세요.
+
+2. 프론트엔드 (React, Tailwind CSS)
+
+신규 RegisterPage.jsx (client/src/pages/RegisterPage.jsx):
+
+'이름', '이메일', '비밀번호', '비밀번호 확인' 필드를 가진 Tailwind CSS 폼 컴포넌트의 전체 코드를 작성해 주세요.
+
+onSubmit 핸들러가 axios.post('/api/v1/auth/register', ...)를 호출해야 합니다.
+
+회원가입 성공 시(JWT 토큰을 응답으로 받음), AuthContext의 login(token) 함수를 호출하고 메인 페이지로 리다이렉트하는 로직을 구현해 주세요.
+
+이메일 중복 등 에러 메시지를 표시하는 로직을 포함해 주세요.
+
+LoginPage.jsx 수정 (client/src/pages/LoginPage.jsx):
+
+기존의 소셜 로그인 버튼들 위에 '이메일'과 '비밀번호' 입력을 위한 Tailwind CSS 폼을 추가해 주세요.
+
+이 폼의 onSubmit 핸들러는 axios.post('/api/v1/auth/login', ...)을 호출해야 합니다.
+
+로그인 성공 시(JWT 토큰을 응답으로 받음), AuthContext의 login(token) 함수를 호출하고 리다이렉트하는 로직을 구현해 주세요.
+
+폼 하단에 <Link to="/register"> (React Router)를 사용하여 '아직 회원이 아니신가요? 회원가입' 링크를 추가해 주세요."
+- **결과 및 수정사항**: 구현은 성공하였지만, 기존의 회원가입 버튼이 아닌 로그인 창에서 이동해야하는 문제점 발견
+- **학습 내용**: 소셜 간편 로그인 구현
+
+---
+
+- **작업 내용**: 회원가입 페이지 일원화
+- **Gemini CLI 사용 프롬프트**:
+"Gemini, 현재 '회원가입' 기능의 경로가 /signup과 /register로 나뉘어 있습니다. 이를 /signup으로 일원화하는 리팩토링이 필요합니다.
+
+<목표>
+
+기존 http://localhost:5173/register 경로는 제거합니다.
+
+http://localhost:5173/signup 경로가 RegisterPage.jsx의 새로운 디자인과 기능을 갖도록 완전히 교체합니다.
+
+'로그인 페이지'와 '헤더' 등 앱 내 모든 '회원가입' 링크가 /signup 경로를 가리키도록 수정합니다.
+
+<요청 작업 목록>
+
+1. 파일 이름 변경 및 내부 코드 수정
+
+client/src/pages/RegisterPage.jsx 파일의 이름을 **client/src/pages/SignupPage.jsx**로 변경합니다.
+
+이름이 변경된 SignupPage.jsx 파일 내부의 컴포넌트 이름(예: function RegisterPage)도 **function SignupPage**로 변경하고, export 구문도 export default SignupPage로 수정한 전체 코드를 상세한 주석과 함께 보여주세요.
+
+2. React Router 설정 수정 (client/src/App.jsx 또는 라우터 설정 파일)
+
+React Router 설정 파일에서,
+
+<Route path="/register" ... /> 경로 설정은 완전히 제거합니다.
+
+<Route path="/signup" ... /> 경로가 새로 만든 SignupPage 컴포넌트를 렌더링하도록 수정(또는 교체)된 코드 예시를 보여주세요. (import 구문 포함)
+
+3. Header.jsx 링크 수정 (client/src/components/Header.jsx)
+
+Header.jsx 파일에서 로그아웃 상태일 때 표시되는 '회원가입' 버튼의 링크(href 또는 <Link to=...)가 /register였다면, 이를 **/signup**으로 수정한 전체 코드를 보여주세요. (원래 /signup이었다면 변경 없음)
+
+4. LoginPage.jsx 링크 수정 (client/src/pages/LoginPage.jsx)
+
+LoginPage.jsx 파일 하단에 있던 '아직 회원이 아니신가요? 회원가입' 링크를 <Link to="/register">에서 **<Link to="/signup">**으로 수정한 전체 코드를 상세한 주석과 함께 보여주세요."
+- **결과 및 수정사항**: 구현은 성공하였지만, 기존의 회원가입 버튼이 아닌 로그인 창에서 이동해야하는 문제점 발견
+- **학습 내용**: 소셜 간편 로그인 구현
+
+---
 
 
 

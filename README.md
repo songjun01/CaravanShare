@@ -51,9 +51,9 @@
     ```
     (경로는 실제 설치 경로에 맞게 수정해야 할 수 있습니다. `c:\data\db` 폴더가 없으면 생성해야 합니다.)
 
--   **WSL 또는 Linux (systemd 사용 시):**
+-   **WSL 또는 Linux :**
     ```bash
-    sudo systemctl start mongod
+   sudo mongod --config /etc/mongod.conf --logpath /var/log/mongodb/mongod.log --fork
     ```
 
 -   **macOS (Homebrew 사용 시):**

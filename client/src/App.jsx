@@ -2,10 +2,14 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 
 // 페이지 컴포넌트들을 가져옵니다.
 import CaravanListPage from './pages/CaravanListPage';
-// TODO: 나중에 홈페이지, 로그인 페이지 등을 추가할 수 있습니다.
+import LoginPage from './pages/LoginPage';
+import AuthSuccessPage from './pages/AuthSuccessPage';
+import SignupPage from './pages/SignupPage'; // SignupPage 임포트
+// TODO: 나중에 홈페이지 등을 추가할 수 있습니다.
 // import HomePage from './pages/HomePage'; 
 
 /**
@@ -16,24 +20,36 @@ import CaravanListPage from './pages/CaravanListPage';
  */
 function App() {
   return (
-    // <Router>는 react-router-dom을 사용하기 위해 전체 앱을 감싸는 컴포넌트입니다.
-    <Router>
-      {/* <Routes>는 여러 <Route> 컴포넌트를 감싸며, 현재 URL과 일치하는 첫 번째 <Route>를 렌더링합니다. */}
-      <Routes>
-        {/* 
-          <Route>는 특정 경로(path)와 해당 경로에서 렌더링할 컴포넌트(element)를 정의합니다.
-          - path="/": 웹사이트의 루트 경로 (예: http://localhost:5173/)
-          - element={<CaravanListPage />}: 루트 경로로 접속했을 때 CaravanListPage 컴포넌트를 보여줍니다.
-        */}
-        <Route path="/" element={<CaravanListPage />} />
-        
-        {/* 
-          TODO: 나중에 다른 페이지 라우트를 여기에 추가할 수 있습니다.
-          <Route path="/caravans" element={<CaravanListPage />} />
-          <Route path="/login" element={<LoginPage />} /> 
-        */}
-      </Routes>
-    </Router>
+    // AuthProvider가 Router를 감싸도록 하여, 앱의 모든 라우트에서
+    // useAuth 훅을 통해 인증 상태(user, token, login, logout)에 접근할 수 있게 합니다.
+    <AuthProvider>
+      {/* <Router>는 react-router-dom을 사용하기 위해 전체 앱을 감싸는 컴포넌트입니다. */}
+      <Router>
+        {/* <Routes>는 여러 <Route> 컴포넌트를 감싸며, 현재 URL과 일치하는 첫 번째 <Route>를 렌더링합니다. */}
+        <Routes>
+          {/* 
+            <Route>는 특정 경로(path)와 해당 경로에서 렌더링할 컴포넌트(element)를 정의합니다.
+            - path="/": 웹사이트의 루트 경로 (예: http://localhost:5173/)
+            - element={<CaravanListPage />}: 루트 경로로 접속했을 때 CaravanListPage 컴포넌트를 보여줍니다.
+          */}
+          <Route path="/" element={<CaravanListPage />} />
+          
+          {/* 로그인 페이지 라우트 */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* 회원가입 페이지 라우트 (경로 일원화) */}
+          <Route path="/signup" element={<SignupPage />} />
+
+          {/* 소셜 로그인 성공 시 리다이렉트될 콜백 페이지 라우트 */}
+          <Route path="/auth-success" element={<AuthSuccessPage />} />
+          
+          {/* 
+            TODO: 나중에 다른 페이지 라우트를 여기에 추가할 수 있습니다.
+            <Route path="/caravans" element={<CaravanListPage />} />
+          */}
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

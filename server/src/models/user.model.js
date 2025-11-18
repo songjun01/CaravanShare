@@ -1,48 +1,90 @@
 // server/src/models/user.model.js
 
-// Mongoose 라이브러리를 가져옵니다. MongoDB 데이터베이스와의 상호작용을 쉽게 해주는 ODM(Object Data Modeling) 라이브러리입니다.
 const mongoose = require('mongoose');
-// Mongoose의 Schema 객체를 가져옵니다. 데이터의 구조(스키마)를 정의하는 데 사용됩니다.
-const { Schema } = mongoose;
+const bcrypt = require('bcryptjs');
 
-/**
- * @brief User 스키마 정의
- * @description 사용자의 정보를 저장하기 위한 데이터베이스 스키마입니다.
- * 
- * @param {String} name - 사용자 이름 (필수)
- * @param {String} email - 사용자 이메일 (필수, 고유값)
- * @param {String} password - 사용자 비밀번호 (필수)
- * @param {String} role - 사용자 역할 ('guest' 또는 'host', 기본값: 'guest')
- * @param {Date} createdAt - 생성 일자 (자동 생성)
- * @param {Date} updatedAt - 수정 일자 (자동 생성)
- */
-const userSchema = new Schema({
-  name: {
-    type: String,
-    required: true, // 필수 필드
-    trim: true      // 문자열 앞뒤 공백 자동 제거
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,   // 데이터베이스 내에서 고유한 값을 가져야 함
-    trim: true,
-    lowercase: true // 항상 소문자로 저장
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  role: {
-    type: String,
-    enum: ['guest', 'host'], // 'guest' 또는 'host' 값만 허용
-    default: 'guest'         // 기본값 설정
-  }
+// 사용자 정보를 위한 스키마 정의
+const userSchema = new mongoose.Schema({
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true,
+        match: [/.+\@.+\..+/, '유효한 이메일 형식이 아닙니다.'],
+    },
+    displayName: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    password: {
+        type: String,
+        // 'local' provider로 가입한 사용자만 비밀번호를 요구하도록 설정할 수 있으나,
+        // 스키마 레벨에서는 optional로 두고, 라우터/컨트롤러 레벨에서 로직으로 처리하는 것이 더 유연합니다.
+    },
+    // 각 소셜 로그인 제공자별 고유 ID를 저장할 필드
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+    naverId: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+    kakaoId: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+    provider: {
+        type: String,
+        required: true,
+        enum: ['local', 'google', 'naver', 'kakao'],
+    },
 }, {
-  // timestamps 옵션은 createdAt과 updatedAt 필드를 자동으로 생성하고 관리해줍니다.
-  timestamps: true 
+    timestamps: true,
 });
 
-// userSchema를 기반으로 'User'라는 이름의 모델을 생성하고 export합니다.
-// 이 모델을 통해 실제 데이터베이스의 users 컬렉션과 상호작용할 수 있습니다.
-module.exports = mongoose.model('User', userSchema);
+/**
+ * @brief pre-save 훅: 비밀번호 암호화
+ * @description
+ *   - User 모델이 데이터베이스에 저장되기('save') 전에 실행되는 미들웨어입니다.
+ *   - 사용자의 비밀번호가 변경되었거나 새로 생성되었을 때만 bcrypt를 사용하여 비밀번호를 해시합니다.
+ */
+userSchema.pre('save', async function (next) {
+    // 'this'는 현재 저장하려는 user 문서를 가리킵니다.
+    // 비밀번호 필드가 변경되지 않았으면(isModified), 다음 미들웨어로 넘어갑니다.
+    if (!this.isModified('password')) {
+        return next();
+    }
+
+    try {
+        // 'salt'를 생성합니다. 숫자가 높을수록 보안이 강력해지지만, 해싱 시간이 길어집니다. 10이 적당합니다.
+        const salt = await bcrypt.genSalt(10);
+        // 생성된 salt를 사용하여 비밀번호를 해시합니다.
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @brief 인스턴스 메서드: 비밀번호 비교
+ * @description
+ *   - 로그인 시 입력된 비밀번호와 데이터베이스에 저장된 해시된 비밀번호를 비교합니다.
+ * @param {string} candidatePassword - 사용자가 입력한 비밀번호
+ * @returns {Promise<boolean>} - 비밀번호 일치 여부를 boolean 값으로 반환하는 Promise
+ */
+userSchema.methods.comparePassword = function (candidatePassword) {
+    // 'this.password'는 데이터베이스에 저장된 해시된 비밀번호입니다.
+    return bcrypt.compare(candidatePassword, this.password);
+};
+
+
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
