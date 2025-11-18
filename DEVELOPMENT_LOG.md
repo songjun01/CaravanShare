@@ -686,8 +686,68 @@ Header.jsx 파일에서 로그아웃 상태일 때 표시되는 '회원가입' �
 4. LoginPage.jsx 링크 수정 (client/src/pages/LoginPage.jsx)
 
 LoginPage.jsx 파일 하단에 있던 '아직 회원이 아니신가요? 회원가입' 링크를 <Link to="/register">에서 **<Link to="/signup">**으로 수정한 전체 코드를 상세한 주석과 함께 보여주세요."
-- **결과 및 수정사항**: 구현은 성공하였지만, 기존의 회원가입 버튼이 아닌 로그인 창에서 이동해야하는 문제점 발견
+- **결과 및 수정사항**: 구현 성공
 - **학습 내용**: 소셜 간편 로그인 구현
+
+---
+
+- **작업 내용**: 메인페이지 대여 가능한 카라반 목록 표시
+- **Gemini CLI 사용 프롬프트**:
+"Gemini, 'CaravanShare' 프로젝트의 **메인 페이지(홈)**에 대여 가능한 카라반 목록을 표시하는 기능을 구현해야 합니다.
+
+<요구사항>
+
+데이터 흐름:
+
+**백엔드(Express)**는 GET /api/v1/caravans API 엔드포인트를 통해 MongoDB에 저장된 모든 카라반 목록을 JSON 형태로 제공해야 합니다.
+
+**프론트엔드(React)**의 메인 페이지(예: HomePage.jsx)는 마운트될 때 이 API를 호출하여 데이터를 가져와야 합니다.
+
+UI/UX (필수):
+
+'깨끗하고, 미니멀하며, 고급스러운' 디자인 컨셉을 Tailwind CSS로 구현합니다.
+
+목록은 반응형 그리드(Grid) 레이아웃으로 표시되어야 합니다. (예: 모바일 1열, 태블릿 2열, 데스크톱 3열)
+
+각 카라반 항목은 재사용 가능한 CaravanCard.jsx 컴포넌트로 분리합니다.
+
+주석: 모든 코드에 상세한 주석을 달아주세요.
+
+<요청 작업 목록>
+
+1. 백엔드 (Node.js, Express, MongoDB)
+
+Caravan 컨트롤러 (server/src/controllers/caravanController.js):
+
+MongoDB Caravan 모델에서 모든 카라반 문서를 조회(Caravan.find({}))하여 클라이언트에 응답하는 getAllCaravans 비동기 함수(async function)의 전체 코드를 상세한 주석과 함께 작성해 주세요. (에러 처리 포함)
+
+Caravan 라우터 (server/src/routes/caravanRoutes.js):
+
+GET /api/v1/caravans 경로 요청 시 위에서 만든 getAllCaravans 컨트롤러 함수를 실행하도록 연결하는 Express 라우터 설정 코드를 보여주세요.
+
+2. 프론트엔드 (React, Tailwind CSS)
+
+신규 CaravanCard.jsx 컴포넌트 (client/src/components/CaravanCard.jsx):
+
+props로 카라반 객체(예: name, pricePerDay, imageUrl, location)를 받아 표시하는 재사용 가능한 카드 컴포넌트의 전체 코드를 작성해 주세요.
+
+Tailwind CSS를 사용하여 '미니멀하고 고급스러운' 카드 디자인을 구현해 주세요. (예: rounded-lg, shadow-md, overflow-hidden, 부드러운 hover:shadow-xl 트랜지션 효과)
+
+이미지, 카라반 이름(굵게), 위치(작은 글씨), 1박 가격(예: ₩150,000 / 박)을 포함해야 합니다.
+
+메인 페이지 (client/src/pages/HomePage.jsx 또는 App.jsx의 메인 영역):
+
+컴포넌트가 마운트될 때(useEffect) axios.get('/api/v1/caravans')를 호출하여 카라반 목록을 가져오는 로직을 구현해 주세요.
+
+가져온 데이터는 useState (예: caravans)에 저장하고, loading 및 error 상태도 useState로 관리하는 전체 코드를 작성해 주세요.
+
+로딩 중일 때는 '목록을 불러오는 중...' 메시지를, 에러 발생 시 에러 메시지를 표시해야 합니다.
+
+데이터를 성공적으로 불러오면, caravans.map()을 사용하여 목록을 순회하고, 각 항목에 대해 위에서 만든 CaravanCard 컴포넌트를 렌더링해 주세요.
+
+이 목록을 감싸는 컨테이너에 **Tailwind CSS의 grid**를 사용하여 반응형 레이아웃 (예: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6)을 적용해 주세요."
+- **결과 및 수정사항**: 구현 성공
+- **학습 내용**: 서버와 백엔드, 프론트엔드 간 데이터 통신
 
 ---
 
