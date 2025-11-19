@@ -85,6 +85,29 @@ app-caravan/
 - [Node.js](https://nodejs.org/) (v18 이상 권장)
 - [MongoDB](https://www.mongodb.com/try/download/community) 데이터베이스 서버
 
+### MongoDB 실행
+백엔드 서버를 실행하기 전에 MongoDB 데이터베이스 서버가 실행 중이어야 합니다. 사용하시는 운영체제와 설치 방식에 따라 다음 명령어 중 하나를 사용하여 MongoDB를 시작하세요.
+
+-   **Windows (직접 설치한 경우):**
+    ```bash
+    "C:\Program Files\MongoDB\Server\[버전]\bin\mongod.exe" --dbpath="c:\data\db"
+    ```
+    (경로는 실제 설치 경로에 맞게 수정해야 할 수 있습니다. `c:\data\db` 폴더가 없으면 생성해야 합니다.)
+
+-   **WSL 또는 Linux :**
+    ```bash
+    sudo mongod --config /etc/mongod.conf --logpath /var/log/mongodb/mongod.log --fork
+    ```
+    (또는 `sudo service mongod start`)
+
+-   **macOS (Homebrew 사용 시):**
+    ```bash
+    brew services start mongodb-community
+    ```
+    MongoDB가 성공적으로 시작되었는지 확인하려면, MongoDB 셸(`mongosh`)에 접속하거나, `sudo systemctl status mongod` 등의 명령어로 서비스 상태를 확인하세요.
+
+---
+
 ### 1. 프로젝트 클론
 ```bash
 git clone <repository-url>
