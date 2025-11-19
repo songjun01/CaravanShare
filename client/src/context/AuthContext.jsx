@@ -23,15 +23,14 @@ export const AuthProvider = ({ children }) => {
         const storedToken = localStorage.getItem('authToken');
         if (storedToken) {
             try {
-                // 토큰이 유효한지 디코딩하여 확인합니다.
-                const decodedUser = jwtDecode(storedToken);
+                // 토큰이 유효한지 디코딩하여 확인하고, 필요한 정보를 추출합니다.
+                const { id, displayName, email, isHost, exp } = jwtDecode(storedToken);
                 
                 // 토큰의 만료 시간을 확인합니다.
-                // Date.now()는 밀리초 단위이므로, JWT의 exp(초 단위)와 비교하기 위해 1000을 곱합니다.
-                if (decodedUser.exp * 1000 > Date.now()) {
+                if (exp * 1000 > Date.now()) {
                     // 토큰이 유효하면 상태를 설정합니다.
                     setToken(storedToken);
-                    setUser(decodedUser);
+                    setUser({ id, displayName, email, isHost });
                 } else {
                     // 토큰이 만료되었으면 localStorage에서 제거합니다.
                     localStorage.removeItem('authToken');
@@ -48,12 +47,12 @@ export const AuthProvider = ({ children }) => {
     const login = (newToken) => {
         try {
             // JWT 토큰을 디코딩하여 사용자 정보를 추출합니다.
-            const decodedUser = jwtDecode(newToken);
+            const { id, displayName, email, isHost } = jwtDecode(newToken);
             // localStorage에 토큰을 저장하여 페이지를 새로고침해도 로그인이 유지되도록 합니다.
             localStorage.setItem('authToken', newToken);
             // 상태를 업데이트합니다.
             setToken(newToken);
-            setUser(decodedUser);
+            setUser({ id, displayName, email, isHost });
         } catch (error) {
             console.error("Failed to decode token on login:", error);
         }

@@ -38,7 +38,13 @@ const seedCaravans = async () => {
                 dailyRate: 150000,
                 location: '경기도 가평군',
                 amenities: ['샤워', '주방', '에어컨', '난방', 'TV'],
-                photos: ['https://placehold.co/400x300/A9A9A9/FFFFFF?text=Modern+Caravan'],
+                photos: [
+                    'https://placehold.co/800x600/A9A9A9/FFFFFF?text=Modern+Caravan+1',
+                    'https://placehold.co/400x300/808080/FFFFFF?text=Modern+Caravan+2',
+                    'https://placehold.co/400x300/696969/FFFFFF?text=Modern+Caravan+3',
+                    'https://placehold.co/400x300/708090/FFFFFF?text=Modern+Caravan+4',
+                    'https://placehold.co/400x300/778899/FFFFFF?text=Modern+Caravan+5'
+                ],
                 status: 'available',
             },
             {
@@ -49,7 +55,12 @@ const seedCaravans = async () => {
                 dailyRate: 220000,
                 location: '제주특별자치도 제주시 애월읍',
                 amenities: ['샤워', '주방', '오션뷰', '테라스'],
-                photos: ['https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'],
+                photos: [
+                    'https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=800',
+                    'https://images.unsplash.com/photo-1517423738875-5ce310acd52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1517423738875-5ce310acd52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1517423738875-5ce310acd52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'
+                ],
                 status: 'available',
             },
             {
@@ -60,7 +71,11 @@ const seedCaravans = async () => {
                 dailyRate: 180000,
                 location: '강원도 평창군',
                 amenities: ['난방', '바베큐 그릴', '숲속 뷰'],
-                photos: ['https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'],
+                photos: [
+                    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=800',
+                    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'
+                ],
                 status: 'available',
             },
             {
@@ -71,7 +86,12 @@ const seedCaravans = async () => {
                 dailyRate: 250000,
                 location: '충청남도 태안군',
                 amenities: ['샤워', '주방', '에어컨', '난방', 'TV', '대형 침대'],
-                photos: ['https://images.unsplash.com/photo-1503614472-8c93d56e92ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'],
+                photos: [
+                    'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=800',
+                    'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'
+                ],
                 status: 'available',
             },
             {
@@ -82,7 +102,11 @@ const seedCaravans = async () => {
                 dailyRate: 130000,
                 location: '경기도 파주시',
                 amenities: ['주방', '난방', '레트로 소품'],
-                photos: ['https://placehold.co/400x300/D2B48C/FFFFFF?text=Retro+Caravan'],
+                photos: [
+                    'https://placehold.co/800x600/D2B48C/FFFFFF?text=Retro+Caravan+1',
+                    'https://placehold.co/400x300/BC8F8F/FFFFFF?text=Retro+Caravan+2',
+                    'https://placehold.co/400x300/CD853F/FFFFFF?text=Retro+Caravan+3'
+                ],
                 status: 'available',
             },
             {
@@ -93,7 +117,11 @@ const seedCaravans = async () => {
                 dailyRate: 190000,
                 location: '부산광역시 해운대구',
                 amenities: ['샤워', '주방', '에어컨', '시티뷰'],
-                photos: ['https://images.unsplash.com/photo-1534430480872-3498386e7856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'],
+                photos: [
+                    'https://images.unsplash.com/photo-1534430480872-3498386e7856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=800',
+                    'https://images.unsplash.com/photo-1534430480872-3498386e7856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1534430480872-3498386e7856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'
+                ],
                 status: 'available',
             },
             {
@@ -104,7 +132,12 @@ const seedCaravans = async () => {
                 dailyRate: 200000,
                 location: '전라북도 무주군',
                 amenities: ['난방', '천체 망원경', '테라스'],
-                photos: ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'],
+                photos: [
+                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=800',
+                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'
+                ],
                 status: 'available',
             },
             {
@@ -115,7 +148,11 @@ const seedCaravans = async () => {
                 dailyRate: 170000,
                 location: '경기도 양평군',
                 amenities: ['샤워', '주방', '펫 전용 침대', '펫 드라이룸'],
-                photos: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'],
+                photos: [
+                    'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=800',
+                    'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'
+                ],
                 status: 'available',
             },
             {
@@ -126,7 +163,12 @@ const seedCaravans = async () => {
                 dailyRate: 160000,
                 location: '강원도 양양군',
                 amenities: ['샤워', '장비 보관소', '외부 샤워 시설'],
-photos: ['https://placehold.co/400x300/4682B4/FFFFFF?text=Extreme+Sports'],
+                photos: [
+                    'https://placehold.co/800x600/4682B4/FFFFFF?text=Extreme+Sports+1',
+                    'https://placehold.co/400x300/5F9EA0/FFFFFF?text=Extreme+Sports+2',
+                    'https://placehold.co/400x300/6A5ACD/FFFFFF?text=Extreme+Sports+3',
+                    'https://placehold.co/400x300/483D8B/FFFFFF?text=Extreme+Sports+4'
+                ],
                 status: 'available',
             },
             {
@@ -137,7 +179,11 @@ photos: ['https://placehold.co/400x300/4682B4/FFFFFF?text=Extreme+Sports'],
                 dailyRate: 185000,
                 location: '충청북도 충주시',
                 amenities: ['샤워', '주방', '낚시 도구 대여', '호수 뷰'],
-                photos: ['https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'],
+                photos: [
+                    'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=800',
+                    'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400',
+                    'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjA5fDB8MXxjb2xsZWN0aW9ufDF8fDE2MjM4NjV8fHx8fDJ8fDE2MjM4NjU&ixlib=rb-1.2.1&q=80&w=400'
+                ],
                 status: 'available',
             },
         ];

@@ -7,6 +7,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const session = require('express-session'); // express-session 추가
 const passport = require('passport');       // passport 추가
+const path = require('path'); // path 모듈 추가
 const passportConfig = require('./config/passport'); // Passport 설정 로드
 const authRoutes = require('./routes/auth.routes'); // 인증 라우트 로드
 
@@ -22,6 +23,11 @@ app.use(cors());
 
 // 들어오는 요청의 본문(body)을 JSON 형식으로 파싱합니다.
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // FormData 처리를 위해 추가
+
+// 'uploads' 디렉토리를 정적 파일 경로로 설정합니다.
+// 클라이언트에서 '/uploads/filename.jpg'와 같은 URL로 접근할 수 있게 됩니다.
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Express 세션 설정 (Passport가 내부적으로 사용)
 app.use(session({

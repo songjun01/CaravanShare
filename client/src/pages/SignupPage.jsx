@@ -49,6 +49,7 @@ export default function SignupPage() {
         password: '',
         confirmPassword: '',
     });
+    const [userType, setUserType] = useState('guest'); // 'guest' 또는 'host'
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -75,6 +76,7 @@ export default function SignupPage() {
                 displayName: formData.displayName,
                 email: formData.email,
                 password: formData.password,
+                isHost: userType === 'host', // 선택된 userType에 따라 isHost 값을 설정
             });
             
             // 회원가입 성공 시, 응답으로 받은 토큰을 사용하여 로그인 처리
@@ -117,6 +119,30 @@ export default function SignupPage() {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
                     <form className="space-y-6" onSubmit={handleSubmit}>
+                        {/* 가입 유형 선택 */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">가입 유형</label>
+                            <fieldset className="mt-2">
+                                <legend className="sr-only">가입 유형 선택</legend>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <label className={`relative flex items-center justify-center p-3 border rounded-md cursor-pointer ${userType === 'guest' ? 'bg-indigo-50 border-indigo-200 z-10' : 'border-gray-200'}`}>
+                                        <input type="radio" name="userType" value="guest" checked={userType === 'guest'} onChange={(e) => setUserType(e.target.value)} className="sr-only" />
+                                        <div className="text-sm">
+                                            <span className="font-medium text-gray-900">게스트</span>
+                                            <p className="text-gray-500 text-xs">카라반을 예약하고 싶어요</p>
+                                        </div>
+                                    </label>
+                                    <label className={`relative flex items-center justify-center p-3 border rounded-md cursor-pointer ${userType === 'host' ? 'bg-indigo-50 border-indigo-200 z-10' : 'border-gray-200'}`}>
+                                        <input type="radio" name="userType" value="host" checked={userType === 'host'} onChange={(e) => setUserType(e.target.value)} className="sr-only" />
+                                        <div className="text-sm">
+                                            <span className="font-medium text-gray-900">호스트</span>
+                                            <p className="text-gray-500 text-xs">카라반을 등록할래요</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+
                         <div>
                             <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
                                 이름
@@ -215,6 +241,10 @@ export default function SignupPage() {
                             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300" /></div>
                             <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">또는 소셜 계정으로 가입</span></div>
                         </div>
+                        <p className="mt-2 text-center text-xs text-gray-500">
+                            소셜 로그인은 게스트로만 가입됩니다. <br />
+                            호스트로 가입하시려면 이메일로 가입해주세요.
+                        </p>
                         <div className="mt-6 space-y-3">
                             {socialLogins.map((social) => (
                                 <a key={social.name} href={social.url} className={`w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium transition-colors

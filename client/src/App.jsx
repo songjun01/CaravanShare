@@ -9,6 +9,8 @@ import CaravanListPage from './pages/CaravanListPage';
 import LoginPage from './pages/LoginPage';
 import AuthSuccessPage from './pages/AuthSuccessPage';
 import SignupPage from './pages/SignupPage'; // SignupPage 임포트
+import CaravanDetailPage from './pages/CaravanDetailPage'; // CaravanDetailPage 임포트
+import HostingPage from './pages/HostingPage'; // HostingPage 임포트
 // TODO: 나중에 홈페이지 등을 추가할 수 있습니다.
 // import HomePage from './pages/HomePage'; 
 
@@ -34,6 +36,15 @@ function App() {
           */}
           <Route path="/" element={<CaravanListPage />} />
           
+          {/* 카라반 목록 페이지 라우트 */}
+          <Route path="/caravans" element={<CaravanListPage />} />
+
+          {/* 카라반 상세 페이지 라우트 */}
+          <Route path="/caravans/:id" element={<CaravanDetailPage />} />
+
+          {/* 호스트 되기 (카라반 등록) 페이지 라우트 */}
+          <Route path="/hosting" element={<HostingPage />} />
+
           {/* 로그인 페이지 라우트 */}
           <Route path="/login" element={<LoginPage />} />
 
@@ -43,10 +54,6 @@ function App() {
           {/* 소셜 로그인 성공 시 리다이렉트될 콜백 페이지 라우트 */}
           <Route path="/auth-success" element={<AuthSuccessPage />} />
           
-          {/* 
-            TODO: 나중에 다른 페이지 라우트를 여기에 추가할 수 있습니다.
-            <Route path="/caravans" element={<CaravanListPage />} />
-          */}
         </Routes>
       </Router>
     </AuthProvider>

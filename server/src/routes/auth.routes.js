@@ -9,15 +9,15 @@ const router = express.Router();
 
 // JWT 생성 함수
 const generateToken = (user) => {
-    // JWT 페이로드에 displayName도 포함하여 프론트엔드에서 활용할 수 있도록 합니다.
-    return jwt.sign({ id: user.id, email: user.email, displayName: user.displayName }, process.env.JWT_SECRET, {
+    // JWT 페이로드에 displayName과 isHost도 포함하여 프론트엔드에서 활용할 수 있도록 합니다.
+    return jwt.sign({ id: user.id, email: user.email, displayName: user.displayName, isHost: user.isHost }, process.env.JWT_SECRET, {
         expiresIn: '1h', // 토큰 유효 시간: 1시간
     });
 };
 
 // [POST] /api/v1/auth/register (로컬 회원가입)
 router.post('/register', async (req, res, next) => {
-    const { displayName, email, password } = req.body;
+    const { displayName, email, password, isHost } = req.body;
 
     try {
         // 1. 이메일 중복 확인
@@ -32,6 +32,7 @@ router.post('/register', async (req, res, next) => {
             displayName,
             email,
             password,
+            isHost, // isHost 필드 추가
             provider: 'local', // provider를 'local'로 명시
         });
 

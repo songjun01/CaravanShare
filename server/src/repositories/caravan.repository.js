@@ -28,8 +28,10 @@ class CaravanRepository {
    * @returns {Promise<Object|null>} 카라반 문서 객체 또는 null
    */
   async findById(id) {
-    // Mongoose의 findById() 메소드를 사용합니다.
-    return Caravan.findById(id);
+    // Mongoose의 findById() 메소드를 사용하고, populate()를 체이닝하여 연관된 호스트 정보를 함께 로드합니다.
+    // 'host' 필드를 참조하여 'User' 컬렉션에서 해당 문서를 찾습니다.
+    // 두 번째 인자로 'displayName profileImage introduction createdAt'을 전달하여, 필요한 필드만 선택적으로 가져옵니다.
+    return Caravan.findById(id).populate('host', 'displayName profileImage introduction createdAt');
   }
 
   /**

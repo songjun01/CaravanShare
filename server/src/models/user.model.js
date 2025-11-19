@@ -44,6 +44,19 @@ const userSchema = new mongoose.Schema({
         required: true,
         enum: ['local', 'google', 'naver', 'kakao'],
     },
+    introduction: {
+        type: String,
+        trim: true,
+        default: '',
+    },
+    profileImage: {
+        type: String,
+        default: 'https://via.placeholder.com/150', // 기본 프로필 이미지
+    },
+    isHost: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });
