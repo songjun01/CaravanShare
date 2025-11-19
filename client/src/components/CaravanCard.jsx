@@ -5,8 +5,9 @@ import { Link } from 'react-router-dom'; // react-router-dom에서 Link를 임�
 /**
  * @brief 개별 카라반 정보를 표시하는 재사용 가능한 카드 컴포넌트
  * @param {object} caravan - 카라반의 상세 정보 (name, dailyRate, photos, location, _id)
+ * @param {boolean} isMyCaravan - '내 카라반' 목록에 속하는지 여부. true일 경우 수정 페이지로 링크됩니다.
  */
-export default function CaravanCard({ caravan }) {
+export default function CaravanCard({ caravan, isMyCaravan = false }) {
     // 1박 가격을 원화(KRW) 형식으로 포맷팅하는 함수
     const formatPrice = (price) => {
         return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(price);
@@ -16,10 +17,13 @@ export default function CaravanCard({ caravan }) {
     const imageUrl = caravan.photos && caravan.photos.length > 0 
         ? caravan.photos[0] 
         : 'https://via.placeholder.com/400x300?text=CaravanShare';
+    
+    // isMyCaravan prop에 따라 동적으로 링크 경로를 결정합니다.
+    const linkTo = isMyCaravan ? `/caravans/${caravan._id}/edit` : `/caravans/${caravan._id}`;
 
     return (
-        // 카드 전체를 Link 컴포넌트로 감싸서 클릭 시 상세 페이지로 이동하도록 합니다.
-        <Link to={`/caravans/${caravan._id}`} className="block">
+        // 카드 전체를 Link 컴포넌트로 감싸서 클릭 시 상세 또는 수정 페이지로 이동하도록 합니다.
+        <Link to={linkTo} className="block">
             <div className="bg-white overflow-hidden rounded-lg shadow-md transition-shadow duration-300 hover:shadow-xl h-full">
                 {/* 카라반 이미지 */}
                 <div className="h-56 w-full overflow-hidden">

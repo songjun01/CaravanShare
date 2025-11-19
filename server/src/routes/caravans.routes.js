@@ -16,6 +16,13 @@ const upload = require('../config/upload');
 router.get('/', CaravanController.getAllCaravans);
 
 /**
+ * @route   GET /host/me
+ * @desc    현재 로그인한 호스트의 모든 카라반을 조회합니다.
+ * @access  Private (로그인한 사용자만 접근 가능)
+ */
+router.get('/host/me', authMiddleware, CaravanController.getMyCaravans);
+
+/**
  * @route   POST /
  * @desc    새로운 카라반을 등록합니다.
  * @access  Private (로그인한 사용자만 접근 가능)
@@ -26,6 +33,20 @@ router.post(
   upload.array('photos', 5), // 2. 'photos' 필드의 이미지 파일들을 최대 5개까지 처리합니다.
   CaravanController.createCaravan // 3. 컨트롤러 함수를 실행합니다.
 );
+
+/**
+ * @route   PUT /:id
+ * @desc    특정 카라반의 정보를 수정합니다.
+ * @access  Private (해당 카라반의 호스트만 접근 가능)
+ */
+router.put('/:id', authMiddleware, upload.array('newPhotos', 5), CaravanController.updateCaravan);
+
+/**
+ * @route   DELETE /:id
+ * @desc    특정 카라반을 삭제합니다.
+ * @access  Private (해당 카라반의 호스트만 접근 가능)
+ */
+router.delete('/:id', authMiddleware, CaravanController.deleteCaravan);
 
 /**
  * @route   GET /:id

@@ -30,25 +30,24 @@ const Header = () => {
           <Link to="/caravans" className="text-gray-600 hover:text-indigo-500 transition-colors">카라반 찾기</Link>
           
           {/* '호스트 되기' 또는 '카라반 등록하기' 버튼 */}
-          {user && user.isHost ? (
+          {user && user.isHost && (
             <Link to="/hosting" className="text-gray-600 hover:text-indigo-500 transition-colors">
               카라반 등록하기
             </Link>
-          ) : (
-            !user && ( // 로그인하지 않은 경우에만 '호스트 되기' 버튼 표시
-              <Link 
-                to="/hosting" 
-                className="text-gray-600 hover:text-indigo-500 transition-colors"
-                onClick={(e) => {
-                  // 로그인하지 않은 경우, HostingPage의 리다이렉트 로직이 처리합니다.
-                  // 로그인했지만 호스트가 아닌 경우, 이 버튼은 렌더링되지 않습니다.
-                }}
-              >
-                호스트 되기
-              </Link>
-            )
+          )}
+          {!user && ( // 로그인하지 않은 경우에만 '호스트 되기' 버튼 표시
+            <Link to="/hosting" className="text-gray-600 hover:text-indigo-500 transition-colors">
+              호스트 되기
+            </Link>
           )}
           
+          {/* '내 카라반' 버튼: 로그인한 사용자에게만 표시 */}
+          {user && (
+            <Link to="/my-caravans" className="text-gray-600 hover:text-indigo-500 transition-colors">
+              내 카라반
+            </Link>
+          )}
+
           {/* user 객체의 존재 여부로 로그인 상태를 판별하여 조건부 렌더링 */}
           {user ? (
             // 로그인 상태일 때: ProfileDropdown 컴포넌트를 렌더링합니다.

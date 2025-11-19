@@ -35,6 +35,38 @@ class CaravanRepository {
   }
 
   /**
+   * @brief 호스트 ID로 카라반 목록을 조회합니다.
+   * @param {String} hostId - 조회할 호스트의 ID
+   * @returns {Promise<Array>} 해당 호스트의 카라반 문서 객체 배열
+   */
+  async findByHostId(hostId) {
+    // Mongoose의 find() 메소드에 host 필드를 기준으로 쿼리합니다.
+    return Caravan.find({ host: hostId });
+  }
+
+  /**
+   * @brief ID로 특정 카라반을 업데이트합니다.
+   * @param {String} id - 업데이트할 카라반의 ID
+   * @param {Object} updateData - 업데이트할 카라반의 데이터
+   * @returns {Promise<Object>} 업데이트된 카라반 문서 객체
+   */
+  async updateById(id, updateData) {
+    // findByIdAndUpdate 메소드를 사용하여 문서를 찾아 업데이트합니다.
+    // { new: true } 옵션은 업데이트된 문서를 반환하도록 합니다.
+    return Caravan.findByIdAndUpdate(id, updateData, { new: true });
+  }
+
+  /**
+   * @brief ID로 특정 카라반을 삭제합니다.
+   * @param {String} id - 삭제할 카라반의 ID
+   * @returns {Promise<Object>} 삭제된 카라반 문서 객체
+   */
+  async deleteById(id) {
+    // findByIdAndDelete 메소드를 사용하여 문서를 찾아 삭제합니다.
+    return Caravan.findByIdAndDelete(id);
+  }
+
+  /**
    * @brief 새로운 카라반을 생성합니다.
    * @param {Object} caravanData - 생성할 카라반의 데이터
    * @returns {Promise<Object>} 생성된 카라반 문서 객체
