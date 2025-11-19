@@ -9,6 +9,7 @@ const Schema = mongoose.Schema;
  *   각 필드에 대한 설명은 아래와 같습니다.
  * 
  * @field {ObjectId} reviewer - 리뷰를 작성한 사용자의 ID. 'User' 모델을 참조합니다.
+ * @field {ObjectId} reviewee - 리뷰를 받은 사용자의 ID (예: 카라반 호스트). 'User' 모델을 참조합니다.
  * @field {ObjectId} caravan - 리뷰가 달린 카라반의 ID. 'Caravan' 모델을 참조합니다.
  * @field {Number} rating - 1점에서 5점 사이의 평점. 필수 항목입니다.
  * @field {String} content - 리뷰 내용. 필수 항목입니다.
@@ -40,6 +41,22 @@ const reviewSchema = new Schema({
 }, {
   // timestamps: true 옵션은 createdAt과 updatedAt 필드를 자동으로 추가하고 관리합니다.
   timestamps: true,
+});
+
+/**
+ * @brief post-save 훅: 리뷰 저장 후 reviewee의 신뢰도 점수 재계산
+ * @description
+ *   - 새로운 리뷰가 저장된 후, 해당 리뷰를 받은 사용자(reviewee)의 신뢰도 점수를 재계산합니다.
+ *   - User 모델의 calculateTrustScore 메서드를 호출하여 점수를 업데이트합니다.
+ */
+reviewSchema.post('save', async function () {
+  // 'this'는 현재 저장된 Review 문서를 가리킵니다.
+  // reviewee는 ObjectId이므로, User 모델을 임포트하여 findById를 사용해야 합니다.
+  const User = require('./user.model'); // 순환 참조를 피하기 위해 여기서 임포트
+  const revieweeUser = await User.findById(this.reviewee);
+  if (revieweeUser) {
+    await revieweeUser.calculateTrustScore();
+  }
 });
 
 // 'Review' 모델을 생성하고 export합니다.

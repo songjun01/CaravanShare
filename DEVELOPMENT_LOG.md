@@ -1230,15 +1230,108 @@ Empty State (중요): myCaravans 배열이 비어있을 때, 사용자가 등록
 
 ---
 
-- **작업 내용**: 등록한 카라반 정보 수정 기능
+- **작업 내용**: 등록한 카라반 삭제 기능
 - **Gemini CLI 사용 프롬프트**:
 ```
-내가 등록한 카라반을 누르면 예약하기가 나오는게 아니라 내용을 수정할 수 있으면 좋겠어
+카라반을 수정하는 페이지에서 카라반을 삭제할 수 있는 기능을 추가하고 싶어.
 ```
 - **결과 및 수정사항**: 구현 성공
 - **학습 내용**: 프론트엔드-백엔드-데이터베이스 간 데이터 통신
 
 ---
+
+- **작업 내용**: 프로필 수정 페이지 구현
+- **Gemini CLI 사용 프롬프트**:
+```
+"Gemini, 회원가입 후 사용자가 자신의 정보를 완성하고 신뢰도를 입증하는 **'프로필 수정 및 관리 페이지 (/profile)'**를 구현해야 합니다.
+
+<요구사항>
+
+핵심 기능:
+
+이름: 회원가입 시 등록된 이름은 **수정 불가능(Read-only)**하게 처리하여 사용자 식별의 일관성을 유지합니다.
+
+연락처: 사용자가 직접 입력/수정할 수 있습니다. (호스트/게스트 간 연락을 위해 필수).
+
+신원 확인: '인증하기' 버튼을 통해 신원을 확인합니다. (MVP 단계이므로 버튼 클릭 시 모의(Mock) API를 호출하여 '인증됨' 상태로 변경).
+
+평가(평점): 다른 사용자들로부터 받은 평점을 조회만 할 수 있습니다.
+
+데이터 흐름:
+
+페이지 로드 시: 현재 로그인한 사용자의 정보를 불러와 폼에 채웁니다.
+
+저장 시: 변경된 정보(연락처 등)를 백엔드로 전송하여 업데이트합니다.
+
+UI/UX:
+
+깔끔한 카드 형태의 레이아웃.
+
+수정 불가능한 필드(이름, 이메일)는 회색 배경(bg-gray-100)으로 시각적 구분.
+
+신원 확인 여부에 따라 '인증 배지' 또는 '인증 필요' 경고를 표시.
+
+<요청 작업 목록>
+
+1. 백엔드 (Node.js, Express, MongoDB)
+
+User 모델 수정 (server/src/models/User.js):
+
+contact (String), isVerified (Boolean, default: false), rating (Number, default: 0) 필드가 있는지 확인하고 없으면 추가해 주세요.
+
+User 컨트롤러 추가 (server/src/controllers/userController.js):
+
+getProfile: 현재 로그인한 사용자(req.user)의 모든 정보를 반환합니다.
+
+updateProfile: req.body에서 contact (및 자기소개 등) 정보만 받아 업데이트합니다. name, email, rating, isVerified 필드는 클라이언트가 보낸 데이터로 수정되지 않도록 필터링하는 보안 로직을 반드시 포함해 주세요.
+
+verifyIdentity: 신원 확인 요청을 처리하는 간단한 함수입니다. 호출되면 해당 유저의 isVerified를 true로 변경합니다.
+
+라우터 설정 (server/src/routes/userRoutes.js):
+
+GET /api/v1/users/me -> getProfile
+
+PUT /api/v1/users/me -> updateProfile
+
+POST /api/v1/users/verify -> verifyIdentity
+
+모든 라우터에 authenticate 미들웨어를 적용해 주세요.
+
+2. 프론트엔드 (React, Tailwind CSS)
+
+ProfilePage.jsx 구현 (client/src/pages/ProfilePage.jsx):
+
+상태 관리: name, email, contact, rating, isVerified 등의 상태를 useState로 관리합니다. useEffect에서 API를 호출해 초기값을 채웁니다.
+
+폼 디자인 (Tailwind CSS):
+
+프로필 섹션: 상단에 프로필 사진과 '나의 평점 ★ 0.0'을 표시합니다.
+
+이름 & 이메일: <input disabled className="bg-gray-100 ..."> 스타일을 적용하여 수정 불가능함을 명확히 보여줍니다.
+
+연락처: 수정 가능한 일반 Input 필드입니다.
+
+신원 확인 섹션:
+
+isVerified가 true면: 파란색 체크 아이콘과 '신원 인증됨' 텍스트 표시.
+
+isVerified가 false면: "안전한 거래를 위해 본인 인증이 필요합니다." 문구와 함께 '신원 인증하기' 버튼 배치.
+
+핸들러 로직:
+
+저장 버튼: 연락처 변경 후 '저장' 클릭 시 PUT /api/v1/users/me 호출 및 성공 알림(Toast or Alert).
+
+인증 버튼: 클릭 시 POST /api/v1/users/verify 호출 -> 성공 시 isVerified 상태를 true로 즉시 업데이트하여 UI에 반영.
+
+컨텍스트 연동: 정보 업데이트 성공 시, AuthContext의 유저 정보도 동기화하는 로직(reloadUser 등)이 필요하다면 주석으로 설명해 주세요.
+
+3. 상세 주석: 백엔드의 보안 로직(수정 불가 필드 처리)과 프론트엔드의 상태 관리 로직에 대해 상세한 주석을 달아주세요."
+```
+- **결과 및 수정사항**: 구현 성공
+- **학습 내용**: 프론트엔드-백엔드-데이터베이스 간 데이터 통신
+
+---
+
 
 
 

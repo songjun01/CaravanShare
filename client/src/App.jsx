@@ -13,6 +13,7 @@ import CaravanDetailPage from './pages/CaravanDetailPage'; // CaravanDetailPage 
 import HostingPage from './pages/HostingPage'; // HostingPage 임포트
 import MyCaravansPage from './pages/MyCaravansPage'; // MyCaravansPage 임포트
 import EditCaravanPage from './pages/EditCaravanPage'; // EditCaravanPage 임포트
+import ProfilePage from './pages/ProfilePage'; // ProfilePage 임포트
 // TODO: 나중에 홈페이지 등을 추가할 수 있습니다.
 // import HomePage from './pages/HomePage'; 
 
@@ -52,6 +53,9 @@ function App() {
 
           {/* 내 카라반 관리 페이지 라우트 */}
           <Route path="/my-caravans" element={<MyCaravansPage />} />
+
+          {/* 내 프로필 관리 페이지 라우트 */}
+          <Route path="/profile" element={<ProfilePage />} />
 
           {/* 로그인 페이지 라우트 */}
           <Route path="/login" element={<LoginPage />} />
