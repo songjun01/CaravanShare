@@ -61,6 +61,12 @@ mongoose.connect(MONGO_URI)
   });
 
 // 4. API 라우트 설정
+app.use((req, res, next) => {
+  if (req.method === 'PUT') {
+    console.log(`[DEBUG] Incoming PUT Request: ${req.originalUrl}`);
+  }
+  next();
+});
 const apiRoutes = require('./routes'); // routes/index.js 파일을 가져옵니다.
 app.use('/api/v1', apiRoutes); // 모든 API 경로는 /api/v1 접두사를 갖게 됩니다.
 

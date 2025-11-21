@@ -83,8 +83,8 @@ class CaravanController {
   async createCaravan(req, res, next) {
     try {
       // 1. 텍스트 데이터와 파일 정보를 요청(request)에서 추출합니다.
-      const { name, description, capacity, dailyRate, location, amenities } = req.body;
-      const host = req.user._id; // authenticate 미들웨어를 통해 주입된 사용자 ID
+      const { name, description, capacity, dailyRate, location, amenities, status } = req.body;
+      const host = req.user.id; // authenticate 미들웨어를 통해 주입된 사용자 ID
 
       // 2. 업로드된 파일들의 전체 URL 경로를 생성합니다.
       const photos = req.files.map(file => {
@@ -104,6 +104,7 @@ class CaravanController {
         amenities: Array.isArray(amenities) ? amenities : [amenities], // 편의시설이 단일 값으로 올 경우 배열로 변환
         photos,
         host,
+        status: status || '사용가능', // status 필드 추가 (기본값 '사용가능')
       };
 
       // 4. 리포지토리를 통해 새로운 카라반을 데이터베이스에 생성합니다.
@@ -156,7 +157,7 @@ class CaravanController {
   async updateCaravan(req, res, next) {
     try {
       const { id } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // 1. 카라반을 조회합니다.
       const caravan = await CaravanRepository.findById(id);
@@ -166,17 +167,17 @@ class CaravanController {
       }
 
       // 2. 현재 로그인한 사용자가 해당 카라반의 호스트인지 확인합니다. (권한 검사)
-      if (caravan.host._id.toString() !== userId.toString()) {
+      if (!caravan.host._id.equals(req.user._id)) {
         return res.status(403).json({ message: '카라반을 수정할 권한이 없습니다.' });
       }
 
       // 3. 업데이트할 데이터를 req.body로부터 안전하게 추출합니다.
       const updateObject = {};
-      const textFields = ['name', 'description', 'location', 'amenities'];
+      const allowedFields = ['name', 'description', 'location', 'amenities', 'status'];
       const numericFields = ['capacity', 'dailyRate'];
 
-      // 텍스트 필드 처리
-      textFields.forEach(field => {
+      // 텍스트 및 상태 필드 처리
+      allowedFields.forEach(field => {
         if (req.body[field] !== undefined) {
           if (field === 'amenities') {
             updateObject[field] = Array.isArray(req.body[field]) ? req.body[field] : [req.body[field]];
@@ -200,7 +201,7 @@ class CaravanController {
         const photosToDelete = Array.isArray(req.body.deletedPhotos) ? req.body.deletedPhotos : [req.body.deletedPhotos];
         updatedPhotos = updatedPhotos.filter(photoUrl => !photosToDelete.includes(photoUrl));
       }
-      // 4-2. 새로 추가된 사진 처리
+      // 4-2. 새로 추가된 사진 처리 (req.files는 multer upload.array('newPhotos')에서 옴)
       if (req.files && req.files.length > 0) {
         const newPhotoUrls = req.files.map(file => 
           `${req.protocol}://${req.get('host')}/uploads/${file.filename}`
@@ -232,7 +233,7 @@ class CaravanController {
   async deleteCaravan(req, res, next) {
     try {
       const { id } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // 1. 카라반을 조회하여 현재 호스트 정보를 확인합니다.
       const caravan = await CaravanRepository.findById(id);
@@ -242,7 +243,13 @@ class CaravanController {
       }
 
       // 2. 현재 로그인한 사용자가 해당 카라반의 호스트인지 확인합니다. (권한 검사)
-      if (caravan.host._id.toString() !== userId.toString()) {
+      console.log('Checking caravan host auth FOR DELETE:', {
+        caravanHostId: caravan.host._id,
+        caravanHostIdType: typeof caravan.host._id,
+        userId: req.user._id,
+        userIdType: typeof req.user._id,
+      });
+      if (!caravan.host._id.equals(req.user._id)) {
         return res.status(403).json({ message: '카라반을 삭제할 권한이 없습니다.' });
       }
 
@@ -254,7 +261,8 @@ class CaravanController {
       // 4. 성공적으로 삭제되었음을 클라이언트에게 알립니다.
       res.status(200).json({ message: 'Caravan deleted successfully' });
 
-    } catch (error) {
+    } catch (error)
+ {
       console.error('Error in deleteCaravan controller:', error);
       next(error);
     }

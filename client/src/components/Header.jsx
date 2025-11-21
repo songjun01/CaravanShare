@@ -41,8 +41,8 @@ const Header = () => {
             </Link>
           )}
           
-          {/* '내 카라반' 버튼: 로그인한 사용자에게만 표시 */}
-          {user && (
+          {/* '내 카라반' 버튼: 로그인한 호스트에게만 표시 */}
+          {user && user.isHost && (
             <Link to="/my-caravans" className="text-gray-600 hover:text-indigo-500 transition-colors">
               내 카라반
             </Link>

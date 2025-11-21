@@ -173,69 +173,81 @@ export default function CaravanDetailPage() {
                 <HostProfile host={caravan.host} />
               </div>
             </div>
-            {/* 오른쪽 컬럼: 예약 위젯 */}
+            {/* 오른쪽 컬럼: 예약 위젯 또는 상태 표시 */}
             <div className="lg:col-span-1">
               <div className="sticky top-24">
                 <div className="p-6 border rounded-xl shadow-lg bg-white">
-                  <div className="flex items-baseline mb-4">
-                    <span className="text-2xl font-bold">₩{caravan.dailyRate.toLocaleString()}</span>
-                    <span className="text-gray-600 ml-1">/ 박</span>
-                  </div>
-                {/* 날짜 선택 */}
-                <DatePicker
-                  selected={startDate}
-                  onChange={handleDateChange}
-                  startDate={startDate}
-                  endDate={endDate}
-                  selectsRange
-                  minDate={new Date()}
-                  monthsShown={2} // 2개의 달력을 보여줍니다.
-                  customInput={<CustomDateInput />}
-                  dateFormat="yyyy/MM/dd"
-                  popperPlacement="bottom-end"
-                />
-
-                {/* 인원 선택 */}
-                <div className="border rounded-lg p-2">
-                  <div className="mt-2 pt-2">
-                    <label htmlFor="guests" className="block text-xs font-semibold">인원</label>
-                    <select id="guests" className="w-full border-none focus:ring-0 p-0">
-                      {[...Array(caravan.capacity)].map((_, i) => (
-                        <option key={i} value={i + 1}>게스트 {i + 1}명</option>
-                      ))}
-                    </select>
-                  </div>
+                  {caravan.status === '사용가능' ? (
+                    <>
+                      {/* --- 예약 위젯 --- */}
+                      <div className="flex items-baseline mb-4">
+                        <span className="text-2xl font-bold">₩{caravan.dailyRate.toLocaleString()}</span>
+                        <span className="text-gray-600 ml-1">/ 박</span>
+                      </div>
+                      {/* 날짜 선택 */}
+                      <DatePicker
+                        selected={startDate}
+                        onChange={handleDateChange}
+                        startDate={startDate}
+                        endDate={endDate}
+                        selectsRange
+                        minDate={new Date()}
+                        monthsShown={2}
+                        customInput={<CustomDateInput />}
+                        dateFormat="yyyy/MM/dd"
+                        popperPlacement="bottom-end"
+                      />
+                      {/* 인원 선택 */}
+                      <div className="border rounded-lg p-2">
+                        <div className="mt-2 pt-2">
+                          <label htmlFor="guests" className="block text-xs font-semibold">인원</label>
+                          <select id="guests" className="w-full border-none focus:ring-0 p-0">
+                            {[...Array(caravan.capacity)].map((_, i) => (
+                              <option key={i} value={i + 1}>게스트 {i + 1}명</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <button className="w-full mt-4 bg-[#524be7] text-white font-bold py-3 rounded-lg hover:bg-[#4a43d9] transition-colors">
+                        예약하기
+                      </button>
+                      <p className="text-center text-sm text-gray-500 mt-3">예약 확정 전에는 요금이 청구되지 않습니다.</p>
+                      {/* 가격 계산 */}
+                      {startDate && endDate && differenceInDays(endDate, startDate) > 0 && (
+                        <div className="mt-6 space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>₩{caravan.dailyRate.toLocaleString()} x {differenceInDays(endDate, startDate)}박</span>
+                            <span>₩{(caravan.dailyRate * differenceInDays(endDate, startDate)).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>서비스 수수료</span>
+                            <span>₩{Math.round(caravan.dailyRate * differenceInDays(endDate, startDate) * 0.1).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-bold pt-2 border-t mt-2">
+                            <span>총 합계</span>
+                            <span>₩{Math.round(caravan.dailyRate * differenceInDays(endDate, startDate) * 1.1).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* --- 예약 불가 상태 표시 --- */}
+                      <div className="text-center py-8">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                          {caravan.status === '예약됨' ? '현재 예약된 카라반입니다' : '현재 정비중인 카라반입니다'}
+                        </h3>
+                        <p className="text-gray-600">
+                          {caravan.status === '예약됨' 
+                            ? '다른 날짜를 선택하시거나 다른 카라반을 찾아보세요.' 
+                            : '더 나은 서비스를 위해 잠시 정비 중입니다. 양해 부탁드립니다.'}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
-
-
-                                  <button className="w-full bg-[#524be7] text-white font-bold py-3 rounded-lg hover:bg-[#4a43d9] transition-colors">
-                                    예약하기
-                                  </button>
-                  <p className="text-center text-sm text-gray-500 mt-3">예약 확정 전에는 요금이 청구되지 않습니다.</p>
-                {/* 가격 계산 */}
-                {startDate && endDate && (
-                  <div className="mt-6 space-y-2 text-sm">
-                    
-                    <div className="flex justify-between">
-                      <span>₩{caravan.dailyRate.toLocaleString()} x {differenceInDays(endDate, startDate)}박</span>
-                      <span>₩{(caravan.dailyRate * differenceInDays(endDate, startDate)).toLocaleString()}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span>서비스 수수료</span>
-                      <span>₩{Math.round(caravan.dailyRate * differenceInDays(endDate, startDate) * 0.1).toLocaleString()}</span>
-                    </div>
-
-                    <div className="flex justify-between font-bold pt-2 border-t mt-2">
-                      <span>총 합계</span>
-                      <span>₩{Math.round(caravan.dailyRate * differenceInDays(endDate, startDate) * 1.1).toLocaleString()}</span>
-                    </div>
-
-                  </div>
-                )}
               </div>
             </div>
-          </div>
           </div>
         </div>
       </>

@@ -1,6 +1,7 @@
 // client/src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
 // 1. Context 생성
 // AuthContext는 앱의 다른 컴포넌트들이 인증 상태에 접근할 수 있도록 하는 통로입니다.
@@ -16,45 +17,54 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true); // 인증 로딩 상태 추가
 
     // 컴포넌트가 처음 마운트될 때 실행되는 로직
     useEffect(() => {
-        // localStorage에서 토큰을 가져옵니다.
-        const storedToken = localStorage.getItem('authToken');
-        if (storedToken) {
-            try {
-                // 토큰이 유효한지 디코딩하여 확인하고, 필요한 정보를 추출합니다.
-                const { id, displayName, email, isHost, exp } = jwtDecode(storedToken);
-                
-                // 토큰의 만료 시간을 확인합니다.
-                if (exp * 1000 > Date.now()) {
-                    // 토큰이 유효하면 상태를 설정합니다.
-                    setToken(storedToken);
-                    setUser({ id, displayName, email, isHost });
-                } else {
-                    // 토큰이 만료되었으면 localStorage에서 제거합니다.
+        const bootstrapAuth = async () => {
+            const storedToken = localStorage.getItem('authToken');
+            if (storedToken) {
+                try {
+                    const decoded = jwtDecode(storedToken);
+                    if (decoded.exp * 1000 > Date.now()) {
+                        setToken(storedToken);
+                        // 토큰이 유효하면, 전체 사용자 프로필을 가져옵니다.
+                        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/users/me`, {
+                            headers: { 'Authorization': `Bearer ${storedToken}` }
+                        });
+                        setUser(response.data.data);
+                    } else {
+                        localStorage.removeItem('authToken');
+                    }
+                } catch (error) {
+                    console.error("Auth bootstrap error:", error);
                     localStorage.removeItem('authToken');
                 }
-            } catch (error) {
-                // 디코딩에 실패하면 (유효하지 않은 토큰), 토큰을 제거합니다.
-                console.error("Invalid token:", error);
-                localStorage.removeItem('authToken');
             }
-        }
+            setLoading(false); // 인증 확인 완료
+        };
+        bootstrapAuth();
     }, []);
 
     // 로그인 함수
-    const login = (newToken) => {
+    const login = async (newToken) => {
         try {
             // JWT 토큰을 디코딩하여 사용자 정보를 추출합니다.
-            const { id, displayName, email, isHost } = jwtDecode(newToken);
-            // localStorage에 토큰을 저장하여 페이지를 새로고침해도 로그인이 유지되도록 합니다.
+            jwtDecode(newToken); // Validate token structure
             localStorage.setItem('authToken', newToken);
-            // 상태를 업데이트합니다.
             setToken(newToken);
-            setUser({ id, displayName, email, isHost });
+            
+            // 로그인 성공 후, 전체 사용자 프로필을 가져옵니다.
+            const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/users/me`, {
+                headers: { 'Authorization': `Bearer ${newToken}` }
+            });
+            setUser(response.data.data);
+
         } catch (error) {
-            console.error("Failed to decode token on login:", error);
+            console.error("Failed to login:", error);
+            localStorage.removeItem('authToken');
+            setToken(null);
+            setUser(null);
         }
     };
 
@@ -67,12 +77,19 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    // 사용자 정보 업데이트 함수
+    const updateUser = (newUserData) => {
+        setUser(prevUser => ({ ...prevUser, ...newUserData }));
+    };
+
     // Context Provider를 통해 value 객체를 하위 컴포넌트에 전달합니다.
     const value = {
         user,
         token,
+        loading, // 로딩 상태 추가
         login,
         logout,
+        updateUser,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

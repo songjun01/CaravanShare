@@ -4,13 +4,28 @@ import { Link } from 'react-router-dom'; // react-router-dom에서 Link를 임�
 
 /**
  * @brief 개별 카라반 정보를 표시하는 재사용 가능한 카드 컴포넌트
- * @param {object} caravan - 카라반의 상세 정보 (name, dailyRate, photos, location, _id)
+ * @param {object} caravan - 카라반의 상세 정보 (name, dailyRate, photos, location, _id, status)
  * @param {boolean} isMyCaravan - '내 카라반' 목록에 속하는지 여부. true일 경우 수정 페이지로 링크됩니다.
  */
 export default function CaravanCard({ caravan, isMyCaravan = false }) {
     // 1박 가격을 원화(KRW) 형식으로 포맷팅하는 함수
     const formatPrice = (price) => {
         return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(price);
+    };
+    
+    // 상태에 따라 다른 스타일의 배지를 반환하는 함수
+    const getStatusBadge = (status) => {
+        let baseStyle = "px-2 py-0.5 inline-block text-xs font-semibold rounded-full";
+        switch (status) {
+            case '사용가능':
+                return <span className={`${baseStyle} bg-green-100 text-green-800`}>{status}</span>;
+            case '예약됨':
+                return <span className={`${baseStyle} bg-yellow-100 text-yellow-800`}>{status}</span>;
+            case '정비중':
+                return <span className={`${baseStyle} bg-red-100 text-red-800`}>{status}</span>;
+            default:
+                return null; // 상태값이 없거나 유효하지 않으면 아무것도 표시하지 않음
+        }
     };
 
     // caravan.photos가 배열이고 비어있지 않은지 확인하여 이미지 URL을 결정합니다.
@@ -39,10 +54,13 @@ export default function CaravanCard({ caravan, isMyCaravan = false }) {
                     {/* 위치 정보 */}
                     <p className="text-sm text-gray-500 mb-1">{caravan.location || '위치 정보 없음'}</p>
                     
-                    {/* 카라반 이름 */}
-                    <h3 className="text-lg font-semibold text-gray-800 truncate">
-                        {caravan.name || '이름 정보 없음'}
-                    </h3>
+                    {/* 카라반 이름과 상태 배지 */}
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-gray-800 truncate">
+                            {caravan.name || '이름 정보 없음'}
+                        </h3>
+                        {getStatusBadge(caravan.status)}
+                    </div>
 
                     {/* 1박 가격 */}
                     <div className="mt-4">

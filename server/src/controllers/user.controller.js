@@ -41,7 +41,7 @@ class UserController {
   async updateProfile(req, res, next) {
     try {
       const userId = req.user.id;
-      const { contact, introduction } = req.body;
+      const { contact, introduction, displayName } = req.body;
 
       // 1. DB에서 현재 사용자 정보를 조회하여 수정 전 상태를 확인합니다.
       const currentUser = await User.findById(userId);
@@ -52,6 +52,10 @@ class UserController {
       // 2. 보안: 클라이언트가 어떤 데이터를 보내든, 서버에서 허용한 필드만 추출하여 업데이트 객체를 생성합니다.
       const updateData = {};
       
+      if (displayName) {
+        updateData.displayName = displayName;
+      }
+      
       // 2-1. 자기소개는 언제든지 수정 가능합니다.
       if (introduction !== undefined) {
         updateData.introduction = introduction;
@@ -60,6 +64,13 @@ class UserController {
       // 2-2. 연락처(contact)는 기존 값이 없는 경우에만 최초 1회 설정 가능합니다.
       if (contact && !currentUser.contact) {
         updateData.contact = contact;
+      }
+      
+      // 2-3. 프로필 이미지가 업로드된 경우, 파일 경로를 저장합니다.
+      if (req.file) {
+        // 클라이언트에서 접근할 수 있는 경로로 변환하여 저장합니다.
+        // 예: 'uploads/photos-1616161616-12345.png'
+        updateData.profileImage = `/uploads/${req.file.filename}`;
       }
 
       // 3. DB에서 사용자를 찾아 업데이트합니다. { new: true } 옵션으로 업데이트된 문서를 반환받습니다.

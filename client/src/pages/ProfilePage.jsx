@@ -1,5 +1,5 @@
 // client/src/pages/ProfilePage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import Layout from '../components/Layout';
@@ -10,10 +10,16 @@ import TrustIndicator from '../components/TrustIndicator'; // TrustIndicator 컴
  * @description 로그인한 사용자가 자신의 프로필 정보를 확인하고 수정하는 페이지입니다.
  */
 export default function ProfilePage() {
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [displayName, setDisplayName] = useState('');
   const [contact, setContact] = useState('');
   const [introduction, setIntroduction] = useState('');
+  
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState('');
+  const fileInputRef = useRef(null);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -29,9 +35,13 @@ export default function ProfilePage() {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/users/me`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
-        setProfile(response.data.data);
-        setContact(response.data.data.contact || '');
-        setIntroduction(response.data.data.introduction || '');
+        const userData = response.data.data;
+        setProfile(userData);
+        setDisplayName(userData.displayName || '');
+        setContact(userData.contact || '');
+        setIntroduction(userData.introduction || '');
+        setProfileImagePreview(`${import.meta.env.VITE_API_BASE_URL}${userData.profileImage}`);
+
       } catch (err) {
         setError('프로필 정보를 불러오는 데 실패했습니다.');
       } finally {
@@ -40,17 +50,43 @@ export default function ProfilePage() {
     };
     fetchProfile();
   }, [token]);
-
-  // 2. 정보 저장 핸들러 (자기소개만 수정)
+  
+  // 프로필 이미지 변경 핸들러
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImageFile(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+  
+  // 2. 정보 저장 핸들러 (자기소개, 프로필 사진 등)
   const handleSave = async (e) => {
     e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('displayName', displayName);
+    formData.append('introduction', introduction);
+    if (profileImageFile) {
+      formData.append('profileImage', profileImageFile);
+    }
+    
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/api/v1/users/me`,
-        { introduction }, // 자기소개만 보냅니다.
-        { headers: { 'Authorization': `Bearer ${token}` } }
+        formData, // FormData를 전송
+        { headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data', // FormData를 위한 헤더
+          } 
+        }
       );
-      setProfile(response.data.data);
+      const updatedProfile = response.data.data;
+      setProfile(updatedProfile);
+      updateUser(updatedProfile); // AuthContext의 user 상태 업데이트
+      setProfileImageFile(null); // 파일 상태 초기화
+      setProfileImagePreview(`${import.meta.env.VITE_API_BASE_URL}${updatedProfile.profileImage}`);
+      
       alert('프로필이 성공적으로 업데이트되었습니다.');
     } catch (err) {
       alert('프로필 업데이트에 실패했습니다.');
@@ -72,7 +108,9 @@ export default function ProfilePage() {
         { contact }, // 연락처만 보냅니다.
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
-      setProfile(response.data.data); // 업데이트된 프로필 정보로 상태 변경
+      const updatedProfile = response.data.data;
+      setProfile(updatedProfile); // 업데이트된 프로필 정보로 상태 변경
+      updateUser(updatedProfile); // AuthContext 업데이트
       alert('연락처가 성공적으로 인증 및 저장되었습니다.');
     } catch (err) {
       alert(err.response?.data?.message || '연락처 인증 및 저장에 실패했습니다.');
@@ -88,7 +126,9 @@ export default function ProfilePage() {
         {}, // body는 비어있음
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
-      setProfile(response.data.data); // 업데이트된 프로필 정보로 상태 변경
+      const updatedProfile = response.data.data;
+      setProfile(updatedProfile); // 업데이트된 프로필 정보로 상태 변경
+      updateUser(updatedProfile);
       alert('신원 인증이 완료되었습니다.');
     } catch (err) {
       alert('신원 인증 처리 중 오류가 발생했습니다.');
@@ -108,13 +148,42 @@ export default function ProfilePage() {
         <div className="bg-white shadow-md rounded-lg p-6">
           {/* 상단 프로필 섹션 */}
           <div className="flex items-center mb-6">
-            <img 
-              className="h-20 w-20 rounded-full object-cover"
-              src={profile.profileImage} 
-              alt="프로필 사진"
-            />
+            <div className="relative">
+              <img
+                className="h-24 w-24 rounded-full object-cover"
+                src={profileImagePreview}
+                alt="프로필 사진"
+              />
+              <button
+                onClick={() => fileInputRef.current.click()}
+                className="absolute bottom-0 right-0 bg-gray-800 p-1 rounded-full text-white hover:bg-gray-700 focus:outline-none"
+                aria-label="프로필 사진 변경"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                  <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+                </svg>
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+                accept="image/*"
+              />
+            </div>
+
             <div className="ml-4">
-              <h2 className="text-2xl font-bold text-gray-800">{profile.displayName}</h2>
+              <div className="flex items-center gap-x-2">
+                <h2 className="text-2xl font-bold text-gray-800">{profile.displayName}</h2>
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                  profile.isHost 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {profile.isHost ? '호스트' : '게스트'}
+                </span>
+              </div>
               <p className="text-yellow-500 font-semibold">★ {profile.rating.toFixed(1)}</p>
               
               {/* 신뢰도 점수 표시 */}
@@ -138,6 +207,18 @@ export default function ProfilePage() {
               <input type="email" id="email" value={profile.email} disabled className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm"/>
             </div>
 
+            {/* 이름 (수정 가능) */}
+            <div>
+              <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">이름</label>
+              <input 
+                type="text" 
+                id="displayName" 
+                value={displayName} 
+                onChange={(e) => setDisplayName(e.target.value)} 
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            
             {/* 연락처 (수정 가능 / 불가) */}
             <div>
               <label htmlFor="contact" className="block text-sm font-medium text-gray-700">연락처</label>
@@ -187,7 +268,7 @@ export default function ProfilePage() {
                 </button>
               )}
               <button type="submit" className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                자기소개 저장
+                프로필 저장
               </button>
             </div>
           </form>

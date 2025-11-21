@@ -1,4 +1,3 @@
-// client/src/pages/EditCaravanPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +5,9 @@ import axios from 'axios';
 import Layout from '../components/Layout';
 
 const amenitiesList = ['샤워', '주방', '에어컨', '난방', 'TV', '오션뷰', '테라스', '바베큐 그릴', '펫 전용 침대'];
+
+// 표시할 카라반 상태 목록 (한글)
+const statusList = ['사용가능', '예약됨', '정비중'];
 
 /**
  * @brief 호스트가 자신의 카라반 정보를 수정하는 페이지
@@ -23,6 +25,7 @@ export default function EditCaravanPage() {
     capacity: 1,
     dailyRate: 50000,
     location: '',
+    status: '사용가능', // status 필드 (기본값 '사용가능')
   });
   const [amenities, setAmenities] = useState([]);
   const [existingPhotos, setExistingPhotos] = useState([]); // 기존 사진 URL 배열
@@ -34,7 +37,8 @@ export default function EditCaravanPage() {
 
   // 1. 데이터 로딩 및 권한 확인
   useEffect(() => {
-    if (authLoading) return; // 인증 정보 로딩 중에는 대기
+    // 사용자가 없거나 인증 로딩 중이면 아무것도 하지 않음
+    if (authLoading || !user) return; 
 
     const fetchCaravanData = async () => {
       try {
@@ -42,7 +46,7 @@ export default function EditCaravanPage() {
         const caravanData = response.data.data.caravan;
 
         // 권한 확인: 로그인한 사용자가 호스트인지 확인
-        if (user?.id !== caravanData.host._id) {
+        if (user?._id !== caravanData.host._id) {
           alert('카라반을 수정할 권한이 없습니다.');
           navigate('/my-caravans');
           return;
@@ -55,6 +59,7 @@ export default function EditCaravanPage() {
           capacity: caravanData.capacity,
           dailyRate: caravanData.dailyRate,
           location: caravanData.location,
+          status: caravanData.status || '사용가능', // DB에서 가져온 status 값으로 설정
         });
         setAmenities(caravanData.amenities);
         setExistingPhotos(caravanData.photos); // 기존 사진 URL 상태 설정
@@ -123,6 +128,7 @@ export default function EditCaravanPage() {
       submissionData.append('capacity', formData.capacity);
       submissionData.append('dailyRate', formData.dailyRate);
       submissionData.append('location', formData.location);
+      submissionData.append('status', formData.status); // status 추가
       
       // 2. 배열 데이터 추가
       amenities.forEach(amenity => submissionData.append('amenities', amenity));
@@ -204,6 +210,25 @@ export default function EditCaravanPage() {
               <div>
                 <label htmlFor="dailyRate" className="block text-sm font-medium text-gray-700">1박 가격 (원)</label>
                 <input type="number" name="dailyRate" id="dailyRate" min="10000" step="1000" required value={formData.dailyRate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+              </div>
+            </div>
+             {/* 카라반 상태 섹션 */}
+             <div>
+              <h3 className="text-sm font-medium text-gray-700">카라반 상태</h3>
+              <div className="mt-2 flex items-center space-x-6">
+                {statusList.map((status) => (
+                  <label key={status} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="status"
+                      value={status}
+                      checked={formData.status === status}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                    />
+                    <span className="text-gray-700">{status}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>

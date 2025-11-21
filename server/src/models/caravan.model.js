@@ -15,7 +15,7 @@ const { Schema } = mongoose;
  * @param {String} location - 카라반 위치 (주소 등)
  * @param {Array<String>} amenities - 편의시설 목록 (예: ['샤워', '주방', '에어컨'])
  * @param {Array<String>} photos - 카라반 사진 URL 목록
- * @param {String} status - 카라반 상태 ('available', 'reserved', 'maintenance')
+ * @param {String} status - 카라반 상태 ('사용가능', '예약됨', '정비중')
  * @param {Date} createdAt - 생성 일자 (자동 생성)
  * @param {Date} updatedAt - 수정 일자 (자동 생성)
  */
@@ -59,8 +59,8 @@ const caravanSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['available', 'reserved', 'maintenance'],
-    default: 'available'
+    enum: ['사용가능', '예약됨', '정비중'],
+    default: '사용가능'
   }
 }, {
   timestamps: true
