@@ -13,7 +13,17 @@ class ReservationService {
   /**
    * @brief 예약 생성
    */
-  async createReservation(guestId, caravanId, startDate, endDate, totalPrice) {
+  async createReservation(guestId, caravanId, startDate, endDate) {
+    const caravan = await this.caravanRepository.findById(caravanId);
+    if (!caravan) {
+      throw new CustomError(404, 'Caravan not found');
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const durationDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const totalPrice = durationDays * caravan.dailyRate;
+
     // 이 메서드는 ReservationController의 createReservation에서 사용됩니다.
     // 현재는 이 서비스에서 중복 검사를 직접 수행하지 않고,
     // ReservationValidator를 통해 컨트롤러에서 검증합니다.
@@ -21,10 +31,11 @@ class ReservationService {
     const newReservationData = {
       guest: guestId,
       caravan: caravanId,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: start,
+      endDate: end,
       totalPrice,
       status: 'pending', // 초기 상태는 'pending'
+      paymentStatus: 'unpaid',
     };
     return await this.reservationRepository.create(newReservationData);
   }

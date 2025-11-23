@@ -59,6 +59,23 @@ export default function ProfileDropdown() {
                     <p className="font-semibold">{user.displayName}</p>
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
+
+                {user.isHost ? (
+                    <Link
+                        to="/my-caravans"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                    >
+                        내 카라반
+                    </Link>
+                ) : (
+                    <Link
+                        to="/my-reservations"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                    >
+                        내 예약
+                    </Link>
+                )}
+
                 <Link
                     to="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"

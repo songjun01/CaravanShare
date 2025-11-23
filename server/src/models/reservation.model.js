@@ -45,6 +45,11 @@ const reservationSchema = new Schema({
     enum: ['pending', 'approved', 'rejected', 'cancelled', 'completed'],
     default: 'pending',
   },
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'paid'],
+    default: 'unpaid',
+  },
 }, {
   timestamps: true,
 });

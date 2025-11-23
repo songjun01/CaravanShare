@@ -5,7 +5,7 @@ const router = express.Router();
 const { authenticate, isHost } = require('../middleware/auth.middleware'); // isHost 미들웨어 추가 임포트
 
 // [핵심] 위에서 만든 컨트롤러를 구조 분해 할당({ })으로 가져옵니다.
-const { createReservation, approveReservation, rejectReservation, getReservationsForHost, getCaravanBookedDates } = require('../controllers/reservation.controller'); // getCaravanBookedDates 추가 임포트
+const { createReservation, approveReservation, rejectReservation, getReservationsForHost, getCaravanBookedDates, getReservationsForGuest } = require('../controllers/reservation.controller'); // getCaravanBookedDates 추가 임포트
 
 // 디버깅용: 서버 실행 시 이 로그가 undefined가 아니어야 합니다.
 // 만약 [Function: createReservation] 이라고 뜨면 성공입니다.
@@ -22,6 +22,9 @@ console.log('Loading Reservation Controller:', createReservation);
 
 // 새로운 예약 생성 라우트
 router.post('/', authenticate, createReservation);
+
+// 게스트의 모든 예약 목록 조회 라우트
+router.get('/my-reservations', authenticate, getReservationsForGuest);
 
 // 예약 승인 라우트 (호스트만 가능)
 router.patch('/:id/approve', authenticate, isHost, approveReservation);

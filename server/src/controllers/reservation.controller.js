@@ -19,7 +19,7 @@ class ReservationController {
    */
   async createReservation(req, res, next) {
     try {
-      const { caravanId, startDate, endDate, totalPrice } = req.body;
+      const { caravanId, startDate, endDate } = req.body;
       
       // req.user가 없는 경우를 대비한 방어 코드
       if (!req.user) {
@@ -29,7 +29,7 @@ class ReservationController {
       const guestId = req.user._id; 
 
       // 1. 입력 유효성 검사
-      if (!caravanId || !startDate || !endDate || !totalPrice) {
+      if (!caravanId || !startDate || !endDate) {
         return res.status(400).json({ message: '필수 예약 정보가 누락되었습니다.' });
       }
       if (!mongoose.Types.ObjectId.isValid(caravanId)) {
@@ -59,13 +59,12 @@ class ReservationController {
         guestId,
         caravanId,
         startDate,
-        endDate,
-        totalPrice
+        endDate
       );
 
       // 5. 성공 응답
       res.status(201).json({
-        message: 'Reservation created successfully',
+        message: 'Reservation created successfully, please proceed to payment.',
         data: createdReservation,
       });
 
@@ -165,6 +164,22 @@ class ReservationController {
       });
     } catch (error) {
       console.error('Error in getCaravanBookedDates controller:', error);
+      next(error);
+    }
+  }
+/**
+   * @brief 게스트가 자신의 예약 목록을 조회합니다. (GET /api/v1/reservations/my-reservations)
+   */
+  async getReservationsForGuest(req, res, next) {
+    try {
+      const guestId = req.user._id;
+      const reservations = await ReservationRepository.findByGuestId(guestId);
+      res.status(200).json({
+        message: 'Successfully fetched reservations for guest',
+        data: reservations,
+      });
+    } catch (error) {
+      console.error('Error in getReservationsForGuest controller:', error);
       next(error);
     }
   }

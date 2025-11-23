@@ -8,6 +8,7 @@ const caravanRoutes = require('./caravans.routes');
 const reservationRoutes = require('./reservations.routes');
 const userRoutes = require('./user.routes'); // 사용자 라우트 임포트
 const reviewRoutes = require('./review.routes'); // 리뷰 라우트 임포트
+const paymentRoutes = require('./payment.routes'); // 결제 라우트 임포트
 
 /**
  * @brief API 버전 1의 메인 라우터
@@ -25,5 +26,8 @@ router.use('/users', userRoutes);
 
 // /api/v1/reviews 경로의 요청은 reviewRoutes에서 처리합니다.
 router.use('/reviews', reviewRoutes);
+
+// /api/v1/payments 경로의 요청은 paymentRoutes에서 처리합니다.
+router.use('/payments', paymentRoutes);
 
 module.exports = router;

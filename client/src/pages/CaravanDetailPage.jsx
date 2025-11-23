@@ -28,6 +28,7 @@ export default function CaravanDetailPage() {
   const [startDate, setStartDate] = useState(null); // 체크인 날짜 상태
   const [endDate, setEndDate] = useState(null); // 체크아웃 날짜 상태
   const [bookedDates, setBookedDates] = useState([]); // 예약된 날짜 목록 상태
+  const [reservationDetails, setReservationDetails] = useState(null); // 예약 상세 정보 상태
 
   // 평균 평점을 계산하는 함수
   const calculateAverageRating = () => {
@@ -44,6 +45,7 @@ export default function CaravanDetailPage() {
     const [start, end] = dates;
     setStartDate(start);
     setEndDate(end);
+    setReservationDetails(null);
   };
 
   // 총 가격 계산
@@ -72,7 +74,6 @@ export default function CaravanDetailPage() {
           caravanId: caravan._id,
           startDate: startDate.toISOString(), // ISO 문자열 형식으로 전송
           endDate: endDate.toISOString(),     // ISO 문자열 형식으로 전송
-          totalPrice: totalPrice,
         },
         {
           headers: {
@@ -80,12 +81,8 @@ export default function CaravanDetailPage() {
           },
         }
       );
-      alert('예약 요청이 성공적으로 완료되었습니다. 호스트의 승인을 기다려주세요.');
-      // 예약 성공 후 상태 초기화 또는 다른 페이지로 이동
-      setStartDate(null);
-      setEndDate(null);
-      // 예약 성공 후 예약된 날짜 목록을 다시 가져와 캘린더를 업데이트
-      fetchBookedDates(); 
+      setReservationDetails(response.data.data);
+      alert('예약 요청이 완료되었습니다. 결제를 진행해주세요.');
     } catch (err) {
       console.error('Reservation error:', err.response?.data || err);
       alert(err.response?.data?.message || '예약 요청 중 오류가 발생했습니다.');
@@ -111,7 +108,54 @@ export default function CaravanDetailPage() {
     );
   });
 
+    const handlePayment = async () => {
+    if (!reservationDetails) {
+      alert('예약 정보가 없습니다.');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/payments`,
+        {
+          reservationId: reservationDetails._id,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      alert('결제가 성공적으로 완료되었습니다. 예약이 확정되었습니다.');
+      // 상태 초기화
+      setStartDate(null);
+      setEndDate(null);
+      setReservationDetails(null);
+      // 예약된 날짜 목록 다시 가져오기
+      fetchBookedDates();
+    } catch (err) {
+      console.error('Payment error:', err.response?.data || err);
+      alert(err.response?.data?.message || '결제 중 오류가 발생했습니다.');
+    }
+  };
+
   // 2. 데이터 로딩
+  const fetchBookedDates = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/reservations/caravan/${id}/booked-dates`);
+        const dates = response.data.data.flatMap(reservation => {
+          return eachDayOfInterval({
+            start: new Date(reservation.startDate),
+            end: new Date(reservation.endDate),
+          });
+        });
+        setBookedDates(dates);
+      } catch (err) {
+        console.error('Failed to fetch booked dates:', err);
+        setBookedDates([]); 
+      }
+    };
+
   useEffect(() => {
     const fetchCaravan = async () => {
       try {
@@ -130,24 +174,6 @@ export default function CaravanDetailPage() {
     };
 
     fetchCaravan();
-
-    // 예약된 날짜를 가져오는 함수
-    const fetchBookedDates = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/reservations/caravan/${id}/booked-dates`);
-        const dates = response.data.data.flatMap(reservation => {
-          return eachDayOfInterval({
-            start: new Date(reservation.startDate),
-            end: new Date(reservation.endDate),
-          });
-        });
-        setBookedDates(dates);
-      } catch (err) {
-        console.error('Failed to fetch booked dates:', err);
-        setBookedDates([]); 
-      }
-    };
-
     fetchBookedDates(); // 예약된 날짜도 함께 가져옵니다.
   }, [id]);
 
@@ -283,9 +309,15 @@ export default function CaravanDetailPage() {
                           </select>
                         </div>
                       </div>
-                      <button onClick={handleReservation} className="w-full mt-4 bg-[#524be7] text-white font-bold py-3 rounded-lg hover:bg-[#4a43d9] transition-colors">
-                        예약하기
-                      </button>
+                      {reservationDetails ? (
+                        <button onClick={handlePayment} className="w-full mt-4 bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition-colors">
+                          결제 진행
+                        </button>
+                      ) : (
+                        <button onClick={handleReservation} className="w-full mt-4 bg-[#524be7] text-white font-bold py-3 rounded-lg hover:bg-[#4a43d9] transition-colors">
+                          예약하기
+                        </button>
+                      )}
                       <p className="text-center text-sm text-gray-500 mt-3">예약 확정 전에는 요금이 청구되지 않습니다.</p>
                       {/* 가격 계산 */}
                       {startDate && endDate && differenceInDays(endDate, startDate) > 0 && (
