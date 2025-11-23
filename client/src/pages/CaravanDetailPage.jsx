@@ -5,9 +5,10 @@ import axios from 'axios';
 import Header from '../components/Header'; // Layout 대신 Header를 직접 임포트
 import DatePicker from 'react-datepicker'; // react-datepicker 임포트
 import 'react-datepicker/dist/react-datepicker.css'; // datepicker CSS 임포트
-import { differenceInDays } from 'date-fns'; // date-fns에서 날짜 차이 계산 함수 임포트
+import { differenceInDays, eachDayOfInterval } from 'date-fns'; // date-fns에서 날짜 차이 계산 함수, 각 날짜 추출 함수 임포트
 import ReviewList from '../components/ReviewList'; // ReviewList 컴포넌트 임포트
 import HostProfile from '../components/HostProfile'; // HostProfile 컴포넌트 임포트
+import { useAuth } from '../context/AuthContext'; // useAuth 훅 임포트
 
 /**
  * @brief 카라반 상세 정보 페이지
@@ -19,12 +20,14 @@ import HostProfile from '../components/HostProfile'; // HostProfile 컴포넌트
 export default function CaravanDetailPage() {
   // 1. 상태 관리
   const { id } = useParams();
+  const { user, token, loading: authLoading } = useAuth(); // 사용자 정보와 JWT 토큰, 인증 로딩 상태를 가져옵니다.
   const [caravan, setCaravan] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [startDate, setStartDate] = useState(null); // 체크인 날짜 상태
   const [endDate, setEndDate] = useState(null); // 체크아웃 날짜 상태
+  const [bookedDates, setBookedDates] = useState([]); // 예약된 날짜 목록 상태
 
   // 평균 평점을 계산하는 함수
   const calculateAverageRating = () => {
@@ -41,6 +44,52 @@ export default function CaravanDetailPage() {
     const [start, end] = dates;
     setStartDate(start);
     setEndDate(end);
+  };
+
+  // 총 가격 계산
+  const numberOfNights = startDate && endDate ? differenceInDays(endDate, startDate) : 0;
+  const subtotal = caravan ? caravan.dailyRate * numberOfNights : 0;
+  const serviceFee = Math.round(subtotal * 0.1); // 10% 서비스 수수료
+  const totalPrice = subtotal + serviceFee;
+
+  // 예약하기 버튼 클릭 핸들러
+  const handleReservation = async () => {
+    if (!user) {
+      alert('로그인 후 예약할 수 있습니다.');
+      // navigate('/login'); // 로그인 페이지로 리다이렉트할 수도 있습니다.
+      return;
+    }
+
+    if (!startDate || !endDate || numberOfNights <= 0) {
+      alert('체크인/체크아웃 날짜를 정확히 선택해주세요.');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/reservations`,
+        {
+          caravanId: caravan._id,
+          startDate: startDate.toISOString(), // ISO 문자열 형식으로 전송
+          endDate: endDate.toISOString(),     // ISO 문자열 형식으로 전송
+          totalPrice: totalPrice,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      alert('예약 요청이 성공적으로 완료되었습니다. 호스트의 승인을 기다려주세요.');
+      // 예약 성공 후 상태 초기화 또는 다른 페이지로 이동
+      setStartDate(null);
+      setEndDate(null);
+      // 예약 성공 후 예약된 날짜 목록을 다시 가져와 캘린더를 업데이트
+      fetchBookedDates(); 
+    } catch (err) {
+      console.error('Reservation error:', err.response?.data || err);
+      alert(err.response?.data?.message || '예약 요청 중 오류가 발생했습니다.');
+    }
   };
 
   // DatePicker를 위한 커스텀 입력 컴포넌트
@@ -81,6 +130,25 @@ export default function CaravanDetailPage() {
     };
 
     fetchCaravan();
+
+    // 예약된 날짜를 가져오는 함수
+    const fetchBookedDates = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/reservations/caravan/${id}/booked-dates`);
+        const dates = response.data.data.flatMap(reservation => {
+          return eachDayOfInterval({
+            start: new Date(reservation.startDate),
+            end: new Date(reservation.endDate),
+          });
+        });
+        setBookedDates(dates);
+      } catch (err) {
+        console.error('Failed to fetch booked dates:', err);
+        setBookedDates([]); 
+      }
+    };
+
+    fetchBookedDates(); // 예약된 날짜도 함께 가져옵니다.
   }, [id]);
 
   // 3. 조건부 렌더링
@@ -177,7 +245,13 @@ export default function CaravanDetailPage() {
             <div className="lg:col-span-1">
               <div className="sticky top-24">
                 <div className="p-6 border rounded-xl shadow-lg bg-white">
-                  {caravan.status === '사용가능' ? (
+                  {user?.isHost === true ? (
+                    <div className="text-center py-8">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                        호스트는 카라반을 예약할 수 없습니다.
+                      </h3>
+                    </div>
+                  ) : caravan.status === '사용가능' ? (
                     <>
                       {/* --- 예약 위젯 --- */}
                       <div className="flex items-baseline mb-4">
@@ -196,6 +270,7 @@ export default function CaravanDetailPage() {
                         customInput={<CustomDateInput />}
                         dateFormat="yyyy/MM/dd"
                         popperPlacement="bottom-end"
+                        excludeDates={bookedDates} // 예약된 날짜 비활성화
                       />
                       {/* 인원 선택 */}
                       <div className="border rounded-lg p-2">
@@ -208,7 +283,7 @@ export default function CaravanDetailPage() {
                           </select>
                         </div>
                       </div>
-                      <button className="w-full mt-4 bg-[#524be7] text-white font-bold py-3 rounded-lg hover:bg-[#4a43d9] transition-colors">
+                      <button onClick={handleReservation} className="w-full mt-4 bg-[#524be7] text-white font-bold py-3 rounded-lg hover:bg-[#4a43d9] transition-colors">
                         예약하기
                       </button>
                       <p className="text-center text-sm text-gray-500 mt-3">예약 확정 전에는 요금이 청구되지 않습니다.</p>

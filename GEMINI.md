@@ -25,7 +25,13 @@
 *   카라반 상태 관리 (사용가능, 예약됨, 정비중)
 
 #### 1.3 예약 시스템
-*   예약 신청 (게스트)
+*   예약 신청 (게스트) - **완료**
+    *   `Reservation` 모델 생성 (server/src/models/reservation.model.js)
+    *   `ReservationController` (`createReservation` 함수) 구현 (server/src/controllers/reservation.controller.js)
+    *   `ReservationRepository` 생성 (server/src/repositories/reservation.repository.js)
+    *   `ReservationValidator` 생성 (server/src/services/reservation.validator.js)
+    *   `reservations.routes.js` 라우트 정의 및 `server.js`에 등록
+    *   `CaravanDetailPage.jsx`에서 '예약하기' 버튼에 API 연동 및 유효성 검사
 *   예약 승인/거절 (호스트)
 *   예약 날짜 관리 (캘린더)
 *   중복 예약 방지

@@ -1,50 +1,173 @@
 // server/src/controllers/reservation.controller.js
 
-// 비즈니스 로직을 처리하는 ReservationService를 가져옵니다.
-const ReservationService = require('../services/reservation.service');
+const ReservationRepository = require('../repositories/reservation.repository');
+const CaravanRepository = require('../repositories/caravan.repository');
+const ReservationService = require('../services/reservation.service'); // ReservationService 임포트
+const { ReservationValidator } = require('../services/reservation.validator');
+const mongoose = require('mongoose');
+
+// ReservationService 인스턴스 생성
+const reservationService = new ReservationService(ReservationRepository, CaravanRepository);
 
 /**
  * @brief ReservationController 클래스
- * @description
- *   '컨트롤러 계층'은 HTTP 요청을 받아들이고, 그 요청을 적절한 서비스 계층의 메서드에 전달하는 '교통정리' 역할을 합니다.
- *   컨트롤러는 비즈니스 로직을 직접 수행하지 않습니다. 로직 처리는 서비스 계층에 위임합니다.
- *   또한, 서비스 계층의 처리 결과를 받아 HTTP 응답(성공, 에러 등)을 클라이언트에게 보내주는 역할을 담당합니다.
+ * @description 예약 생성, 승인, 거절 등과 관련된 요청을 처리하는 컨트롤러
  */
 class ReservationController {
   /**
-   * @brief 새 예약을 생성하는 요청을 처리합니다. (POST /api/v1/reservations)
-   * @param {Object} req - Express의 요청(request) 객체
-   * @param {Object} res - Express의 응답(response) 객체
-   * @param {Function} next - 에러 처리를 위한 next 함수
+   * @brief 새로운 예약을 생성합니다. (POST /api/v1/reservations)
    */
   async createReservation(req, res, next) {
     try {
-      // 1. HTTP 요청 본문(body)에서 예약에 필요한 데이터를 추출합니다.
-      //    인증 미들웨어를 통과했다면, req.user 객체에 인증된 사용자 정보가 담겨 있습니다.
-      const reservationData = {
-        caravanId: req.body.caravanId,
-        userId: req.user._id, // 인증된 사용자의 ID
-        startDate: req.body.startDate,
-        endDate: req.body.endDate,
-      };
+      const { caravanId, startDate, endDate, totalPrice } = req.body;
+      
+      // req.user가 없는 경우를 대비한 방어 코드
+      if (!req.user) {
+        return res.status(401).json({ message: '인증 정보가 없습니다.' });
+      }
+      
+      const guestId = req.user._id; 
 
-      // 2. 데이터 처리를 서비스 계층(ReservationService)에 위임합니다.
-      //    컨트롤러는 '어떻게' 예약을 생성하는지에 대한 비즈니스 로직을 알 필요가 없습니다.
-      const newReservation = await ReservationService.createReservation(reservationData);
+      // 1. 입력 유효성 검사
+      if (!caravanId || !startDate || !endDate || !totalPrice) {
+        return res.status(400).json({ message: '필수 예약 정보가 누락되었습니다.' });
+      }
+      if (!mongoose.Types.ObjectId.isValid(caravanId)) {
+        return res.status(400).json({ message: '유효하지 않은 카라반 ID 형식입니다.' });
+      }
 
-      // 3. 서비스 계층의 처리 결과를 클라이언트에게 HTTP 응답으로 보냅니다.
-      //    - 201 Created: 리소스가 성공적으로 생성되었음을 의미하는 상태 코드
+      // 2. 카라반 존재 여부 확인
+      const caravan = await CaravanRepository.findById(caravanId);
+      if (!caravan) {
+        return res.status(404).json({ message: '예약하려는 카라반을 찾을 수 없습니다.' });
+      }
+
+      // 3. 날짜 유효성 및 중복 예약 검사
+      const validator = new ReservationValidator(ReservationRepository);
+      const isAvailable = await validator.validateReservationAvailability(
+        caravanId,
+        new Date(startDate),
+        new Date(endDate)
+      );
+
+      if (!isAvailable) {
+        return res.status(409).json({ message: '선택하신 날짜에 카라반을 예약할 수 없습니다. 이미 예약이 존재합니다.' });
+      }
+      
+      // 4. 서비스 계층을 통해 예약 생성
+      const createdReservation = await reservationService.createReservation(
+        guestId,
+        caravanId,
+        startDate,
+        endDate,
+        totalPrice
+      );
+
+      // 5. 성공 응답
       res.status(201).json({
         message: 'Reservation created successfully',
-        data: newReservation
+        data: createdReservation,
+      });
+
+    } catch (error) {
+      console.error('Error in createReservation controller:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * @brief 호스트가 예약 요청을 승인합니다. (PATCH /api/v1/reservations/:id/approve)
+   * @param {Object} req - Express의 요청(request) 객체 (req.user, req.params.id 포함)
+   * @param {Object} res - Express의 응답(response) 객체
+   * @param {Function} next - 에러 처리를 위한 next 함수
+   */
+  async approveReservation(req, res, next) {
+    try {
+      const { id: reservationId } = req.params;
+      const hostId = req.user._id; // 인증 미들웨어에서 추가된 호스트 ID
+
+      const updatedReservation = await reservationService.approveReservation(reservationId, hostId);
+
+      res.status(200).json({
+        message: 'Reservation approved successfully',
+        data: updatedReservation,
       });
     } catch (error) {
-      // 4. 서비스 계층에서 발생한 에러를 중앙 에러 처리 미들웨어로 전달합니다.
-      console.error('Error in createReservation controller:', error);
-      next(error); // next(error)는 Express의 에러 핸들러를 호출합니다.
+      console.error('Error in approveReservation controller:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * @brief 호스트가 예약 요청을 거절합니다. (PATCH /api/v1/reservations/:id/reject)
+   * @param {Object} req - Express의 요청(request) 객체 (req.user, req.params.id 포함)
+   * @param {Object} res - Express의 응답(response) 객체
+   * @param {Function} next - 에러 처리를 위한 next 함수
+   */
+  async rejectReservation(req, res, next) {
+    try {
+      const { id: reservationId } = req.params;
+      const hostId = req.user._id; // 인증 미들웨어에서 추가된 호스트 ID
+
+      const updatedReservation = await reservationService.rejectReservation(reservationId, hostId);
+
+      res.status(200).json({
+        message: 'Reservation rejected successfully',
+        data: updatedReservation,
+      });
+    } catch (error) {
+      console.error('Error in rejectReservation controller:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * @brief 호스트가 자신의 카라반에 대한 모든 예약 목록을 조회합니다. (GET /api/v1/reservations/host)
+   * @param {Object} req - Express의 요청(request) 객체 (req.user 포함)
+   * @param {Object} res - Express의 응답(response) 객체
+   * @param {Function} next - 에러 처리를 위한 next 함수
+   */
+  async getReservationsForHost(req, res, next) {
+    try {
+      const hostId = req.user._id; // 인증 미들웨어에서 추가된 호스트 ID
+
+      const reservations = await ReservationRepository.findReservationsByHostId(hostId);
+
+      res.status(200).json({
+        message: 'Reservations for host fetched successfully',
+        data: reservations,
+      });
+    } catch (error) {
+      console.error('Error in getReservationsForHost controller:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * @brief 특정 카라반의 예약된 날짜 목록을 조회합니다. (GET /api/v1/reservations/caravan/:id/booked-dates)
+   * @param {Object} req - Express의 요청(request) 객체 (req.params.id 포함)
+   * @param {Object} res - Express의 응답(response) 객체
+   * @param {Function} next - 에러 처리를 위한 next 함수
+   */
+  async getCaravanBookedDates(req, res, next) {
+    try {
+      const { id: caravanId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(caravanId)) {
+        return res.status(400).json({ message: '유효하지 않은 카라반 ID 형식입니다.' });
+      }
+
+      const bookedDates = await ReservationRepository.getApprovedReservationDatesForCaravan(caravanId);
+
+      res.status(200).json({
+        message: 'Booked dates fetched successfully',
+        data: bookedDates,
+      });
+    } catch (error) {
+      console.error('Error in getCaravanBookedDates controller:', error);
+      next(error);
     }
   }
 }
 
-// ReservationController의 인스턴스를 생성하여 export합니다.
 module.exports = new ReservationController();

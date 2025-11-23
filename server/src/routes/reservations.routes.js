@@ -1,41 +1,38 @@
 // server/src/routes/reservations.routes.js
 
 const express = require('express');
-// Express의 Router를 생성합니다.
 const router = express.Router();
+const { authenticate, isHost } = require('../middleware/auth.middleware'); // isHost 미들웨어 추가 임포트
 
-// 컨트롤러와 미들웨어를 가져옵니다.
-const ReservationController = require('../controllers/reservation.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+// [핵심] 위에서 만든 컨트롤러를 구조 분해 할당({ })으로 가져옵니다.
+const { createReservation, approveReservation, rejectReservation, getReservationsForHost, getCaravanBookedDates } = require('../controllers/reservation.controller'); // getCaravanBookedDates 추가 임포트
 
-/**
- * @brief 예약 관련 API 라우트를 정의합니다.
- * @description
- *   - 라우터는 특정 URL 경로(endpoint)와 HTTP 메소드(GET, POST 등)의 조합을
- *     담당할 컨트롤러의 특정 함수와 연결해주는 역할을 합니다.
- *   - '/api/v1/reservations'와 같은 기본 경로(base path)는
- *     메인 서버 파일(예: server.js)에서 이 라우터 파일을 사용할 때 설정됩니다.
- */
-
-// === 라우트 정의 ===
+// 디버깅용: 서버 실행 시 이 로그가 undefined가 아니어야 합니다.
+// 만약 [Function: createReservation] 이라고 뜨면 성공입니다.
+console.log('Loading Reservation Controller:', createReservation); 
 
 /**
- * @route   POST /
- * @desc    새로운 예약을 생성합니다.
- * @access  Private (인증된 사용자만 접근 가능)
- * 
- * @description
- * 1. 클라이언트가 이 엔드포인트로 POST 요청을 보냅니다.
- * 2. `authMiddleware`가 먼저 실행되어 요청 헤더의 JWT를 검증합니다.
- *    - 검증에 실패하면, 미들웨어는 401 Unauthorized 응답을 보내고 여기서 요청 처리가 끝납니다.
- *    - 검증에 성공하면, 사용자 정보를 req.user에 담고 `next()`를 호출하여 제어를 다음 함수로 넘깁니다.
- * 3. `ReservationController.createReservation` 함수가 실행되어 실제 예약 생성 로직을 처리합니다.
+ * @brief 예약 관련 라우트 정의
+ * - POST /api/v1/reservations: 새로운 예약 생성 (인증 필요)
+ * - PATCH /api/v1/reservations/:id/approve: 예약 승인 (호스트 인증 필요)
+ * - PATCH /api/v1/reservations/:id/reject: 예약 거절 (호스트 인증 필요)
+ * - GET /api/v1/reservations/host: 호스트의 모든 카라반 예약 목록 조회 (호스트 인증 필요)
+ * - GET /api/v1/reservations/caravan/:id/booked-dates: 특정 카라반의 예약된 날짜 목록 조회
  */
-router.post('/', authMiddleware, ReservationController.createReservation);
 
+// 새로운 예약 생성 라우트
+router.post('/', authenticate, createReservation);
 
-// TODO: 다른 예약 관련 라우트들을 추가할 수 있습니다.
-// 예: GET /:id (특정 예약 조회), GET / (나의 예약 목록 조회) 등
+// 예약 승인 라우트 (호스트만 가능)
+router.patch('/:id/approve', authenticate, isHost, approveReservation);
 
-// 설정된 라우터 객체를 export합니다.
+// 예약 거절 라우트 (호스트만 가능)
+router.patch('/:id/reject', authenticate, isHost, rejectReservation);
+
+// 호스트의 모든 카라반 예약 목록 조회 라우트
+router.get('/host', authenticate, isHost, getReservationsForHost);
+
+// 특정 카라반의 예약된 날짜 목록 조회 라우트 (인증 불필요)
+router.get('/caravan/:id/booked-dates', getCaravanBookedDates);
+
 module.exports = router;

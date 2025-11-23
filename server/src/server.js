@@ -10,6 +10,7 @@ const passport = require('passport');       // passport 추가
 const path = require('path'); // path 모듈 추가
 const passportConfig = require('./config/passport'); // Passport 설정 로드
 const authRoutes = require('./routes/auth.routes'); // 인증 라우트 로드
+const reservationsRoutes = require('./routes/reservations.routes'); // 예약 라우트 로드
 
 // .env 파일의 환경 변수를 로드합니다.
 dotenv.config();
@@ -72,6 +73,9 @@ app.use('/api/v1', apiRoutes); // 모든 API 경로는 /api/v1 접두사를 갖�
 
 // 소셜 로그인 인증 라우트 연결
 app.use('/api/v1/auth', authRoutes);
+
+// 예약 관련 라우트 연결
+app.use('/api/v1/reservations', reservationsRoutes);
 
 // 기본 루트 경로 핸들러 (서버 동작 확인용)
 app.get('/', (req, res) => {
