@@ -81,8 +81,8 @@ export default function CaravanDetailPage() {
           },
         }
       );
-      setReservationDetails(response.data.data);
-      alert('예약 요청이 완료되었습니다. 결제를 진행해주세요.');
+      setReservationDetails(null); // 예약 요청 성공 후에도 결제 진행 버튼으로 바뀌지 않도록 초기화
+      alert('예약 요청이 완료되었습니다. 호스트의 예약 확정을 기다려주세요.');
     } catch (err) {
       console.error('Reservation error:', err.response?.data || err);
       alert(err.response?.data?.message || '예약 요청 중 오류가 발생했습니다.');

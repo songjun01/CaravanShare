@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema({
     },
     trustScore: {
         type: Number,
-        default: 50, // 기본 신뢰도 점수
+        default: 10, // 최초 가입 시 신뢰도 점수
         min: 0,
         max: 100,
     },
@@ -91,6 +91,10 @@ userSchema.pre('save', async function (next) {
     // 'this'는 현재 저장하려는 user 문서를 가리킵니다.
     // 비밀번호 필드가 변경되지 않았으면(isModified), 다음 미들웨어로 넘어갑니다.
     if (!this.isModified('password')) {
+        return next();
+    }
+    // 비밀번호가 없는 경우(소셜 로그인 등)에도 해싱을 건너뜁니다.
+    if (!this.password) {
         return next();
     }
 
@@ -118,44 +122,26 @@ userSchema.methods.comparePassword = function (candidatePassword) {
 };
 
 /**
- * @brief 인스턴스 메서드: 신뢰도 점수(Trust Score)를 계산하고 업데이트합니다.
- * @description
- *   - 사용자가 받은 리뷰의 평균 평점, 리뷰 개수, 신원 인증 여부를 기반으로 신뢰도 점수를 계산합니다.
- *   - 계산된 점수는 0점에서 100점 사이로 제한됩니다.
- *   - 공식: (기본 점수 50) + (평균 평점 * 10) + (리뷰 수 * 0.5, 최대 20점) + (신원 인증 시 + 20점)
+ * @brief [신규] 신원 인증 완료 시 신뢰도 점수를 +20합니다.
  */
-userSchema.methods.calculateTrustScore = async function () {
-    // 1. 해당 사용자가 받은 모든 리뷰를 조회합니다.
-    const reviews = await Review.find({ reviewee: this._id });
-
-    // 2. 평균 평점 계산
-    let averageRating = 0;
-    if (reviews.length > 0) {
-        const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
-        averageRating = totalRating / reviews.length;
-    }
-
-    // 3. 신뢰도 점수 계산 공식 적용
-    let score = 50; // 기본 점수
-
-    // 평균 평점 가산점 (최대 50점)
-    score += averageRating * 10; 
-
-    // 리뷰 개수 가중치 (최대 20점)
-    score += Math.min(reviews.length * 0.5, 20); 
-
-    // 신원 인증 가산점 (20점)
-    if (this.isVerified) {
-        score += 20;
-    }
-
-    // 4. 점수 제한 (0점 ~ 100점)
-    this.trustScore = Math.max(0, Math.min(score, 100));
-    
-    // 5. 업데이트된 신뢰도 점수를 저장합니다.
+userSchema.methods.applyVerificationBonus = async function () {
+    this.trustScore += 20;
+    this.trustScore = Math.min(this.trustScore, 100); // 최대 100점
     await this.save();
 };
 
+/**
+ * @brief [수정됨] 인스턴스 메서드: 신뢰도 점수를 직접 조정합니다. (0-100 스케일)
+ * @description
+ *   - 호스트의 게스트 평가 등을 통해 신뢰도 점수를 증감시킵니다.
+ * @param {number} adjustment - 점수 변동치 (예: +0.2, -0.1)
+ */
+userSchema.methods.adjustTrustScore = async function (adjustment) {
+    this.trustScore += adjustment;
+    // 점수 범위를 0과 100 사이로 유지
+    this.trustScore = Math.max(0, Math.min(this.trustScore, 100));
+    await this.save();
+};
 
 const User = mongoose.model('User', userSchema);
 

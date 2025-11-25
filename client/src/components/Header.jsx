@@ -32,19 +32,22 @@ const Header = () => {
           {/* '호스트 되기' 또는 '카라반 등록하기' 버튼 */}
           {user && user.isHost && (
             <Link to="/hosting" className="text-gray-600 hover:text-indigo-500 transition-colors">
-              카라반 등록하기
+              호스팅 예약 관리
             </Link>
           )}
-          {!user && ( // 로그인하지 않은 경우에만 '호스트 되기' 버튼 표시
-            <Link to="/hosting" className="text-gray-600 hover:text-indigo-500 transition-colors">
-              호스트 되기
-            </Link>
-          )}
+
           
           {/* '내 카라반' 버튼: 로그인한 호스트에게만 표시 */}
           {user && user.isHost && (
             <Link to="/my-caravans" className="text-gray-600 hover:text-indigo-500 transition-colors">
               내 카라반
+            </Link>
+          )}
+
+          {/* '내 예약' 버튼: 로그인한 게스트에게만 표시 */}
+          {user && !user.isHost && (
+            <Link to="/my-reservations" className="text-gray-600 hover:text-indigo-500 transition-colors">
+              내 예약
             </Link>
           )}
 

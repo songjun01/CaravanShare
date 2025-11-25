@@ -62,9 +62,10 @@ class PaymentService {
 
       // Update reservation payment status
       reservation.paymentStatus = 'paid';
+      reservation.status = 'completed'; // Change status to 'completed' upon successful payment
       await reservation.save();
 
-      return payment;
+      return reservation;
     } else {
       payment.status = 'failed';
       await payment.save();

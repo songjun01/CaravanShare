@@ -27,11 +27,11 @@ class PaymentController {
         return res.status(400).json({ message: 'Reservation ID is required.' });
       }
 
-      const payment = await paymentService.processPayment(reservationId, userId);
+      const updatedReservation = await paymentService.processPayment(reservationId, userId);
 
       res.status(200).json({
         message: 'Payment processed successfully',
-        data: payment,
+        data: updatedReservation,
       });
     } catch (error) {
       console.error('Error in processPayment controller:', error);

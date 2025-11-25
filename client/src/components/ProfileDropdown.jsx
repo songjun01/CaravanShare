@@ -67,14 +67,7 @@ export default function ProfileDropdown() {
                     >
                         내 카라반
                     </Link>
-                ) : (
-                    <Link
-                        to="/my-reservations"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                    >
-                        내 예약
-                    </Link>
-                )}
+                ) : (null)}
 
                 <Link
                     to="/profile"

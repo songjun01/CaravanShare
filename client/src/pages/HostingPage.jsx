@@ -1,204 +1,125 @@
 // client/src/pages/HostingPage.jsx
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, Fragment } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import Layout from '../components/Layout';
+import GuestRatingForm from '../components/GuestRatingForm';
 
-const amenitiesList = ['샤워', '주방', '에어컨', '난방', 'TV', '오션뷰', '테라스', '바베큐 그릴', '펫 전용 침대'];
-
-/**
- * @brief 호스트가 되어 자신의 카라반을 등록하는 페이지
- */
 export default function HostingPage() {
   const { user, token, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
-  const fileInputRef = useRef(null);
-
-  // 1. 폼 상태 관리
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    capacity: 1,
-    dailyRate: 50000,
-    location: '',
-  });
-  const [amenities, setAmenities] = useState([]);
-  const [photos, setPhotos] = useState([]);
-  const [previews, setPreviews] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [ratingGuestId, setRatingGuestId] = useState(null); // For toggling the rating form
 
-  // 2. 비로그인 및 권한 체크 로직
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        alert('로그인이 필요한 서비스입니다.');
-        navigate('/login');
-      } else if (!user.isHost) {
-        alert('호스트만 접근할 수 있는 페이지입니다.');
-        navigate('/');
-      }
-    }
-  }, [user, authLoading, navigate]);
-
-  // 3. 입력 필드 변경 핸들러
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  // 4. 편의시설 체크박스 변경 핸들러
-  const handleAmenityChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setAmenities(prev => [...prev, value]);
-    } else {
-      setAmenities(prev => prev.filter(item => item !== value));
-    }
-  };
-
-  // 5. 이미지 파일 변경 핸들러 및 미리보기 생성
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (photos.length + files.length > 5) {
-      alert('사진은 최대 5장까지 업로드할 수 있습니다.');
-      return;
-    }
-    setPhotos(prev => [...prev, ...files]);
-
-    const newPreviews = files.map(file => URL.createObjectURL(file));
-    setPreviews(prev => [...prev, ...newPreviews]);
-  };
-
-  // 이미지 삭제 핸들러
-  const handleDeleteImage = (indexToDelete) => {
-    // URL.revokeObjectURL을 호출하여 메모리 누수를 방지합니다.
-    URL.revokeObjectURL(previews[indexToDelete]);
-
-    setPhotos(prev => prev.filter((_, index) => index !== indexToDelete));
-    setPreviews(prev => prev.filter((_, index) => index !== indexToDelete));
-  };
-
-
-  // 6. 폼 제출 핸들러
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const submissionData = new FormData();
-    submissionData.append('name', formData.name);
-    submissionData.append('description', formData.description);
-    submissionData.append('capacity', formData.capacity);
-    submissionData.append('dailyRate', formData.dailyRate);
-    submissionData.append('location', formData.location);
-    amenities.forEach(amenity => submissionData.append('amenities', amenity));
-    photos.forEach(photo => submissionData.append('photos', photo));
-
+  const fetchHostReservations = async () => {
+    if (!token) return;
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/caravans`, submissionData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`,
-        },
+      setLoading(true);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/reservations/host`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      alert('카라반이 성공적으로 등록되었습니다!');
-      navigate(`/caravans/${response.data.data._id}`);
+      setReservations(response.data.data);
     } catch (err) {
-      setError(err.response?.data?.message || '등록 중 오류가 발생했습니다.');
+      setError(err.response?.data?.message || 'Failed to fetch reservations.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading) return null;
+  useEffect(() => {
+    if (!authLoading && user?.isHost) {
+      fetchHostReservations();
+    }
+  }, [user, token, authLoading]);
+  
+  const handleReservationStatus = async (reservationId, status) => {
+    try {
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/reservations/${reservationId}/${status}`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert(`Reservation has been ${status}.`);
+      fetchHostReservations(); // Refresh list
+    } catch (err) {
+      alert(err.response?.data?.message || `Failed to ${status} reservation.`);
+    }
+  };
 
-  // 7. UI 렌더링
+  const handleRatingSubmit = () => {
+    setRatingGuestId(null); // Close the form
+    fetchHostReservations(); // Refresh data
+    alert('Guest has been rated successfully.');
+  };
+
+  if (loading || authLoading) {
+    return <Layout><div className="text-center py-10">Loading...</div></Layout>;
+  }
+
+  if (error) {
+    return <Layout><div className="text-center py-10 text-red-500">Error: {error}</div></Layout>;
+  }
+
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">당신의 카라반을 등록하세요</h1>
-        
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* 기본 정보 섹션 */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">기본 정보</h2>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">카라반 이름</label>
-              <input type="text" name="name" id="name" required value={formData.name} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
-            </div>
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700">위치</label>
-              <input type="text" name="location" id="location" required value={formData.location} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">최대 수용 인원</label>
-                <input type="number" name="capacity" id="capacity" min="1" required value={formData.capacity} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
-              </div>
-              <div>
-                <label htmlFor="dailyRate" className="block text-sm font-medium text-gray-700">1박 가격 (원)</label>
-                <input type="number" name="dailyRate" id="dailyRate" min="10000" step="1000" required value={formData.dailyRate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
-              </div>
-            </div>
-          </div>
-
-          {/* 사진 업로드 섹션 */}
-          <div>
-            <h2 className="text-xl font-semibold">사진 등록</h2>
-            <div className="mt-2">
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                {previews.map((preview, index) => (
-                  <div key={index} className="relative aspect-square">
-                    <img src={preview} alt="미리보기" className="w-full h-full object-cover rounded-md"/>
-                    <button 
-                      type="button"
-                      onClick={() => handleDeleteImage(index)}
-                      className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </div>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">호스팅 예약 관리</h1>
+        {reservations.length === 0 ? (
+          <p>아직 받은 예약이 없습니다.</p>
+        ) : (
+          <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">카라반 / 게스트</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">날짜</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">액션</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {reservations.map((reservation) => (
+                  <Fragment key={reservation._id}>
+                    <tr>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">{reservation.caravan?.name}</div>
+                        <div className="text-sm text-gray-500">{reservation.guest?.displayName}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">{new Date(reservation.startDate).toLocaleDateString()} - {new Date(reservation.endDate).toLocaleDateString()}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${reservation.status === 'approved' || reservation.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          {reservation.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm font-medium">
+                        {reservation.status === 'pending' && (
+                          <>
+                            <button onClick={() => handleReservationStatus(reservation._id, 'approve')} className="text-indigo-600 hover:text-indigo-900">승인</button>
+                            <button onClick={() => handleReservationStatus(reservation._id, 'reject')} className="ml-4 text-red-600 hover:text-red-900">거절</button>
+                          </>
+                        )}
+                        {reservation.status === 'completed' && !reservation.guestRatedByHost && (
+                          <button onClick={() => setRatingGuestId(ratingGuestId === reservation._id ? null : reservation._id)} className="text-blue-600 hover:text-blue-900">게스트 평가하기</button>
+                        )}
+                      </td>
+                    </tr>
+                    {ratingGuestId === reservation._id && (
+                      <tr>
+                        <td colSpan="4">
+                          <GuestRatingForm
+                            reservationId={reservation._id}
+                            onRatingSubmit={handleRatingSubmit}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
-                {photos.length < 5 && (
-                  <button type="button" onClick={() => fileInputRef.current.click()} className="aspect-square flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md text-gray-400 hover:border-indigo-500 hover:text-indigo-500">
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v16m8-8H4" /></svg>
-                  </button>
-                )}
-              </div>
-              <input type="file" name="photos" multiple accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden"/>
-            </div>
+              </tbody>
+            </table>
           </div>
-
-          {/* 편의시설 섹션 */}
-          <div>
-            <h2 className="text-xl font-semibold">편의시설</h2>
-            <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {amenitiesList.map(item => (
-                <label key={item} className="flex items-center space-x-3">
-                  <input type="checkbox" value={item} onChange={handleAmenityChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"/>
-                  <span className="text-gray-700">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* 상세 설명 섹션 */}
-          <div>
-            <label htmlFor="description" className="block text-xl font-semibold text-gray-900">상세 설명</label>
-            <textarea name="description" id="description" rows="6" required value={formData.description} onChange={handleChange} className="mt-2 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-          </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
-
-          {/* 제출 버튼 */}
-          <div>
-            <button type="submit" disabled={loading} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
-              {loading ? '등록 중...' : '내 카라반 등록하기'}
-            </button>
-          </div>
-        </form>
+        )}
       </div>
     </Layout>
   );

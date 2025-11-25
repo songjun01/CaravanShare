@@ -13,6 +13,8 @@ const { Schema } = mongoose;
  * @param {Date} endDate - 예약 종료 날짜 (필수)
  * @param {Number} totalPrice - 총 결제 금액 (필수)
  * @param {String} status - 예약 상태 ('pending', 'approved', 'rejected', 'cancelled', 'completed')
+ * @param {String} paymentStatus - 결제 상태 ('unpaid', 'paid')
+ * @param {Boolean} reviewed - 리뷰 작성 여부 (기본값: false)
  * @param {Date} createdAt - 생성 일자 (자동 생성)
  * @param {Date} updatedAt - 수정 일자 (자동 생성)
  */
@@ -50,9 +52,22 @@ const reservationSchema = new Schema({
     enum: ['unpaid', 'paid'],
     default: 'unpaid',
   },
+  reviewed: {
+    type: Boolean,
+    default: false,
+  },
+  guestRatedByHost: {
+    type: Boolean,
+    default: false,
+  },
+  hostRatedByGuest: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   timestamps: true,
 });
 
 // 'Reservation' 모델을 생성하고 export합니다.
 module.exports = mongoose.model('Reservation', reservationSchema);
+

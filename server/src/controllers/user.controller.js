@@ -102,20 +102,31 @@ class UserController {
   async verifyIdentity(req, res, next) {
     try {
       const userId = req.user.id;
+      const user = await User.findById(userId);
 
-      // isVerified 필드를 true로 업데이트합니다.
-      const verifiedUser = await User.findByIdAndUpdate(userId, { isVerified: true }, { new: true }).select('-password');
-
-      if (!verifiedUser) {
+      if (!user) {
         return res.status(404).json({ message: '인증할 사용자를 찾을 수 없습니다.' });
       }
 
-      // 신원 확인 후 신뢰도 점수를 재계산합니다.
-      await verifiedUser.calculateTrustScore();
+      // 이미 인증된 사용자는 점수를 다시 추가하지 않습니다.
+      if (user.isVerified) {
+        return res.status(200).json({
+          message: '이미 신원이 확인된 사용자입니다.',
+          data: user,
+        });
+      }
+
+      // 신원 확인 처리 및 보너스 점수 적용
+      user.isVerified = true;
+      await user.applyVerificationBonus();
+      
+      // 비밀번호를 제외하고 사용자 정보를 반환합니다.
+      const userResponse = user.toObject();
+      delete userResponse.password;
 
       res.status(200).json({
-        message: 'Identity verified successfully',
-        data: verifiedUser,
+        message: 'Identity verified successfully and trust score updated.',
+        data: userResponse,
       });
     } catch (error) {
       console.error('Error in verifyIdentity controller:', error);

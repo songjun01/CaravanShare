@@ -1,15 +1,19 @@
 // client/src/pages/MyReservationsPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import axios from 'axios';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import ReviewForm from '../components/ReviewForm';
+import HostRatingForm from '../components/HostRatingForm';
 
 export default function MyReservationsPage() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { token } = useAuth();
+  const [reviewingId, setReviewingId] = useState(null);
+  const [ratingHostId, setRatingHostId] = useState(null);
 
   const fetchReservations = async () => {
     if (!token) {
@@ -51,12 +55,23 @@ export default function MyReservationsPage() {
         }
       );
       alert('Payment successful!');
-      // Refresh the reservations list
       fetchReservations();
     } catch (err) {
       console.error('Payment error:', err);
       alert(err.response?.data?.message || 'Payment failed.');
     }
+  };
+
+  const handleReviewSubmit = () => {
+    setReviewingId(null);
+    fetchReservations();
+    alert('리뷰가 성공적으로 제출되었습니다.');
+  };
+
+  const handleHostRatingSubmit = () => {
+    setRatingHostId(null);
+    fetchReservations();
+    alert('호스트 평가가 성공적으로 제출되었습니다.');
   };
 
   const renderStatus = (status) => {
@@ -117,42 +132,81 @@ export default function MyReservationsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {reservations.map((reservation) => (
-                    <tr key={reservation._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <img className="h-10 w-10 rounded-full object-cover" src={reservation.caravan?.photos[0] || 'https://via.placeholder.com/150'} alt="" />
+                    <Fragment key={reservation._id}>
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <img className="h-10 w-10 rounded-full object-cover" src={reservation.caravan?.photos[0] || 'https://via.placeholder.com/150'} alt="" />
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{reservation.caravan?.name}</div>
+                              <div className="text-sm text-gray-500">{reservation.caravan?.location}</div>
+                            </div>
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{reservation.caravan?.name}</div>
-                            <div className="text-sm text-gray-500">{reservation.caravan?.location}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{new Date(reservation.startDate).toLocaleDateString()} - {new Date(reservation.endDate).toLocaleDateString()}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">₩{reservation.totalPrice.toLocaleString()}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {renderStatus(reservation.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {renderPaymentStatus(reservation.paymentStatus)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {reservation.status === 'approved' && reservation.paymentStatus === 'unpaid' && (
-                          <button
-                            onClick={() => handlePayment(reservation._id)}
-                            className="text-white bg-indigo-600 hover:bg-indigo-700 font-bold py-2 px-4 rounded"
-                          >
-                            결제하기
-                          </button>
-                        )}
-                        <Link to={`/caravans/${reservation.caravan?._id}`} className="text-indigo-600 hover:text-indigo-900 ml-4">카라반 보기</Link>
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{new Date(reservation.startDate).toLocaleDateString()} - {new Date(reservation.endDate).toLocaleDateString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">₩{reservation.totalPrice.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {renderStatus(reservation.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {renderPaymentStatus(reservation.paymentStatus)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          {reservation.status === 'approved' && reservation.paymentStatus === 'unpaid' && (
+                            <button
+                              onClick={() => handlePayment(reservation._id)}
+                              className="text-white bg-indigo-600 hover:bg-indigo-700 font-bold py-2 px-4 rounded"
+                            >
+                              결제하기
+                            </button>
+                          )}
+                          {reservation.status === 'completed' && reservation.paymentStatus === 'paid' && !reservation.reviewed && (
+                            <button
+                              onClick={() => setReviewingId(reviewingId === reservation._id ? null : reservation._id)}
+                              className="text-white bg-gray-600 hover:bg-gray-700 font-bold py-2 px-4 rounded"
+                            >
+                              리뷰 작성
+                            </button>
+                          )}
+                          {reservation.status === 'completed' && reservation.paymentStatus === 'paid' && reservation.reviewed && !reservation.hostRatedByGuest && (
+                            <button
+                              onClick={() => setRatingHostId(ratingHostId === reservation._id ? null : reservation._id)}
+                              className="text-white bg-blue-600 hover:bg-blue-700 font-bold py-2 px-4 rounded"
+                            >
+                              호스트 평가하기
+                            </button>
+                          )}
+                          <Link to={`/caravans/${reservation.caravan?._id}`} className="text-indigo-600 hover:text-indigo-900 ml-4">카라반 보기</Link>
+                        </td>
+                      </tr>
+                      {reviewingId === reservation._id && (
+                        <tr>
+                          <td colSpan="6">
+                            <ReviewForm
+                              caravanId={reservation.caravan._id}
+                              reservationId={reservation._id}
+                              onReviewSubmit={handleReviewSubmit}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                      {ratingHostId === reservation._id && (
+                        <tr>
+                          <td colSpan="6">
+                            <HostRatingForm
+                              reservationId={reservation._id}
+                              onRatingSubmit={handleHostRatingSubmit}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
