@@ -13,7 +13,7 @@ const authRoutes = require('./routes/auth.routes'); // 인증 라우트 로드
 const reservationsRoutes = require('./routes/reservations.routes'); // 예약 라우트 로드
 
 // .env 파일의 환경 변수를 로드합니다.
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // 2. Express 애플리케이션 생성 및 미들웨어 설정
 const app = express();
