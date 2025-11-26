@@ -76,7 +76,7 @@ module.exports = () => {
     passport.use(new NaverStrategy({
         clientID: process.env.NAVER_CLIENT_ID,
         clientSecret: process.env.NAVER_CLIENT_SECRET,
-        callbackURL: '/api/v1/auth/naver/callback',
+        callbackURL: process.env.NAVER_CALLBACK_URL,
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             const existingUser = await User.findOne({ naverId: profile.id });
