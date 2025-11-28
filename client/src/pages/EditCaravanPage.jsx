@@ -14,6 +14,7 @@ const statusList = ['사용가능', '예약됨', '정비중'];
  */
 export default function EditCaravanPage() {
   const { id } = useParams(); // URL에서 카라반 ID를 가져옵니다.
+  const isCreateMode = !id; // ID가 없으면 생성 모드
   const { user, token, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null); // 파일 입력을 위한 ref 생성
@@ -32,20 +33,24 @@ export default function EditCaravanPage() {
   const [newPhotos, setNewPhotos] = useState([]); // 새로 추가할 사진 파일 배열
   const [newPreviews, setNewPreviews] = useState([]); // 새로 추가할 사진 미리보기 URL 배열
   const [deletedPhotos, setDeletedPhotos] = useState([]); // 삭제할 기존 사진 URL 배열
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // 생성 모드에서는 초기 로딩이 없음
   const [error, setError] = useState('');
 
-  // 1. 데이터 로딩 및 권한 확인
+  // 1. 데이터 로딩 및 권한 확인 (편집 모드에서만)
   useEffect(() => {
-    // 사용자가 없거나 인증 로딩 중이면 아무것도 하지 않음
-    if (authLoading || !user) return; 
+    // 생성 모드이거나 인증 로딩 중이면 아무것도 하지 않음
+    if (isCreateMode || authLoading) {
+      setLoading(false); // 생성 모드일 경우 로딩 상태 해제
+      return;
+    }
 
     const fetchCaravanData = async () => {
+      setLoading(true); // 편집 모드일 경우 데이터 로딩 시작
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/caravans/${id}`);
         const caravanData = response.data.data.caravan;
 
-        // 권한 확인: 로그인한 사용자가 호스트인지 확인
+        // 권한 확인: 로그인한 사용자가 호스트인지 확인 (편집 모드에서만)
         if (user?._id !== caravanData.host._id) {
           alert('카라반을 수정할 권한이 없습니다.');
           navigate('/my-caravans');
@@ -72,8 +77,10 @@ export default function EditCaravanPage() {
       }
     };
 
-    fetchCaravanData();
-  }, [id, user, authLoading, navigate]);
+    if (user) { // user가 로드된 후에만 데이터 가져오기
+      fetchCaravanData();
+    }
+  }, [id, user, authLoading, navigate, isCreateMode]);
 
   // 2. 입력 필드 변경 핸들러
   const handleChange = (e) => {
@@ -113,7 +120,7 @@ export default function EditCaravanPage() {
     setDeletedPhotos(prev => [...prev, photoUrl]);
   };
 
-  // 7. 폼 제출 핸들러 (수정 로직)
+  // 7. 폼 제출 핸들러 (수정/생성 로직)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -137,19 +144,30 @@ export default function EditCaravanPage() {
       // 3. 새로 추가된 파일 데이터 추가
       newPhotos.forEach(photoFile => submissionData.append('newPhotos', photoFile));
 
-      // 4. PUT 요청으로 FormData 전송
-      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/v1/caravans/${id}`, submissionData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      let response;
+      if (isCreateMode) {
+        // 생성 모드: POST 요청
+        response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/caravans`, submissionData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } else {
+        // 편집 모드: PUT 요청
+        response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/v1/caravans/${id}`, submissionData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
 
-      alert('카라반 정보가 성공적으로 수정되었습니다.');
+      alert(isCreateMode ? '카라반이 성공적으로 등록되었습니다.' : '카라반 정보가 성공적으로 수정되었습니다.');
       navigate('/my-caravans'); // 내 카라반 목록 페이지로 이동
 
     } catch (err) {
-      setError(err.response?.data?.message || '정보 수정 중 오류가 발생했습니다.');
+      setError(err.response?.data?.message || (isCreateMode ? '카라반 등록 중 오류가 발생했습니다.' : '정보 수정 중 오류가 발생했습니다.'));
     } finally {
       setLoading(false);
     }
@@ -188,7 +206,7 @@ export default function EditCaravanPage() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">카라반 정보 수정</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{isCreateMode ? '새 카라반 등록' : '카라반 정보 수정'}</h1>
         
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* 기본 정보 섹션 */}
@@ -235,12 +253,12 @@ export default function EditCaravanPage() {
 
           {/* 사진 업로드 섹션 */}
           <div>
-            <h2 className="text-xl font-semibold">사진 수정</h2>
+            <h2 className="text-xl font-semibold">{isCreateMode ? '사진 등록' : '사진 수정'}</h2>
             <p className="text-sm text-gray-500 mt-1">사진은 최대 5장까지 등록할 수 있습니다.</p>
             <div className="mt-2">
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                {/* 기존 사진 렌더링 */}
-                {existingPhotos.map((photoUrl) => (
+                {/* 기존 사진 렌더링 (편집 모드에서만) */}
+                {!isCreateMode && existingPhotos.map((photoUrl) => (
                   <div key={photoUrl} className="relative aspect-square">
                     <img src={photoUrl} alt="기존 카라반 사진" className="w-full h-full object-cover rounded-md"/>
                     <button 
@@ -302,11 +320,13 @@ export default function EditCaravanPage() {
           {/* 버튼 섹션 */}
           <div className="pt-6 space-y-4">
             <button type="submit" disabled={loading} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
-              {loading ? '수정 중...' : '정보 수정하기'}
+              {loading ? (isCreateMode ? '등록 중...' : '수정 중...') : (isCreateMode ? '카라반 등록하기' : '정보 수정하기')}
             </button>
-            <button type="button" disabled={loading} onClick={handleDelete} className="w-full flex justify-center py-3 px-4 border border-red-500 text-red-500 rounded-md shadow-sm text-lg font-medium hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
-              이 카라반 삭제하기
-            </button>
+            {!isCreateMode && (
+              <button type="button" disabled={loading} onClick={handleDelete} className="w-full flex justify-center py-3 px-4 border border-red-500 text-red-500 rounded-md shadow-sm text-lg font-medium hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
+                이 카라반 삭제하기
+              </button>
+            )}
           </div>
         </form>
       </div>

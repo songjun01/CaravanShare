@@ -139,7 +139,7 @@ export default function MyCaravansPage() {
           <h2 className="text-xl font-semibold text-gray-700">아직 등록된 카라반이 없습니다.</h2>
           <p className="text-gray-500 mt-2 mb-6">첫 번째 카라반을 등록하고 수익을 창출해보세요!</p>
           <Link
-            to="/hosting"
+            to="/caravans/new"
             className="inline-block bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             첫 카라반 등록하기
@@ -151,13 +151,19 @@ export default function MyCaravansPage() {
     return (
       <div className="space-y-10">
         {/* 내 카라반 목록 */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">등록된 내 카라반</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {myCaravans.map(caravan => (
-              <CaravanCard key={caravan._id} caravan={caravan} isMyCaravan={true} />
-            ))}
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">등록된 내 카라반</h2>
+          <Link
+            to="/caravans/new"
+            className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+          >
+            + 카라반 등록하기
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {myCaravans.map(caravan => (
+            <CaravanCard key={caravan._id} caravan={caravan} isMyCaravan={true} />
+          ))}
         </div>
 
         {/* 예약 요청 목록 */}

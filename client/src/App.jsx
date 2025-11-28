@@ -46,6 +46,9 @@ function App() {
           {/* 카라반 상세 페이지 라우트 */}
           <Route path="/caravans/:id" element={<CaravanDetailPage />} />
 
+          {/* 카라반 등록 페이지 라우트 */}
+          <Route path="/caravans/new" element={<EditCaravanPage />} />
+
           {/* 카라반 수정 페이지 라우트 */}
           <Route path="/caravans/:id/edit" element={<EditCaravanPage />} />
 
