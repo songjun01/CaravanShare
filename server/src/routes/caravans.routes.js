@@ -35,7 +35,7 @@ router.get('/host/me', authenticate, CaravanController.getMyCaravans);
 router.post(
   '/',
   authenticate, // [수정됨] authMiddleware -> authenticate
-  upload.array('photos', 5), 
+  upload.array('newPhotos', 5), 
   CaravanController.createCaravan 
 );
 
